@@ -24,6 +24,7 @@
 
 #include <cmath>
 
+#include <atomic>
 #include <fstream>
 #include <memory>
 #include <semaphore>
@@ -37,8 +38,7 @@
 
 using namespace std::literals;
 
-static std::binary_semaphore initSemaphore{ 1 };
-static auto numGPUInstance{ 0 };
+static std::atomic<int> numGPUInstance{ 0 };
 
 struct RIFEData final {
     VSNodeRef* node;
@@ -47,7 +47,7 @@ struct RIFEData final {
     std::vector<int> sx;
     std::vector<float> timesteps;
     std::unique_ptr<RIFE> rife;
-    std::unique_ptr<std::counting_semaphore<>> computeSemaphore;
+    std::unique_ptr<std::counting_semaphore<>> semaphore;
 };
 
 static void filter(const VSFrameRef* src0, const VSFrameRef* src1, VSFrameRef* dst, const RIFEData* const VS_RESTRICT d, const VSAPI* vsapi) noexcept {
@@ -64,9 +64,9 @@ static void filter(const VSFrameRef* src0, const VSFrameRef* src1, VSFrameRef* d
     auto dstG{ reinterpret_cast<float*>(vsapi->getWritePtr(dst, 1)) };
     auto dstB{ reinterpret_cast<float*>(vsapi->getWritePtr(dst, 2)) };
 
-    d->computeSemaphore->acquire();
+    d->semaphore->acquire();
     d->rife->process(src0R, src0G, src0B, src1R, src1G, src1B, dstR, dstG, dstB, width, height, stride);
-    d->computeSemaphore->release();
+    d->semaphore->release();
 }
 
 static void VS_CC rifeInit([[maybe_unused]] VSMap* in, [[maybe_unused]] VSMap* out, void** instanceData, VSNode* node, [[maybe_unused]] VSCore* core, const VSAPI* vsapi) {
@@ -130,11 +130,8 @@ static void VS_CC rifeFree(void* instanceData, [[maybe_unused]] VSCore* core, co
     vsapi->freeNode(d->node);
     delete d;
 
-    initSemaphore.acquire();
-    numGPUInstance--;
-    if (numGPUInstance == 0)
+    if (--numGPUInstance == 0)
         ncnn::destroy_gpu_instance();
-    initSemaphore.release();
 }
 
 static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void* userData, VSCore* core, const VSAPI* vsapi) {
@@ -151,13 +148,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             d->vi.format->bitsPerSample != 32)
             throw "only constant RGB format 32 bit float input supported";
 
-        initSemaphore.acquire();
-        if (numGPUInstance == 0 && ncnn::create_gpu_instance()) {
-            initSemaphore.release();
+        if (ncnn::create_gpu_instance())
             throw "failed to create GPU instance";
-        }
-        numGPUInstance++;
-        initSemaphore.release();
+        ++numGPUInstance;
 
         auto model{ int64ToIntS(vsapi->propGetInt(in, "model", 0, &err)) };
 
@@ -206,11 +199,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
                 vsapi->freeMap(args);
                 vsapi->freeMap(ret);
 
-                initSemaphore.acquire();
-                numGPUInstance--;
-                if (numGPUInstance == 0)
+                if (--numGPUInstance == 0)
                     ncnn::destroy_gpu_instance();
-                initSemaphore.release();
                 return;
             }
 
@@ -220,11 +210,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             vsapi->propSetNode(out, "clip", d->node, paReplace);
             vsapi->freeNode(d->node);
 
-            initSemaphore.acquire();
-            numGPUInstance--;
-            if (numGPUInstance == 0)
+            if (--numGPUInstance == 0)
                 ncnn::destroy_gpu_instance();
-            initSemaphore.release();
             return;
         }
 
@@ -280,16 +267,13 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         d->rife->load(modelPath, fp32);
 #endif
 
-        d->computeSemaphore = std::make_unique<std::counting_semaphore<>>(gpuThread);
+        d->semaphore = std::make_unique<std::counting_semaphore<>>(gpuThread);
     } catch (const char* error) {
         vsapi->setError(out, ("RIFE: "s + error).c_str());
         vsapi->freeNode(d->node);
 
-        initSemaphore.acquire();
-        numGPUInstance--;
-        if (numGPUInstance == 0)
+        if (--numGPUInstance == 0)
             ncnn::destroy_gpu_instance();
-        initSemaphore.release();
         return;
     }
 
