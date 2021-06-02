@@ -16,7 +16,7 @@ endif
 deps = []
 
 if gcc_syntax
-  add_project_arguments('-std:c++20', language: 'cpp')
+  add_project_arguments('-std=c++20', language: 'cpp')
   vapoursynth_dep = dependency('vapoursynth').partial_dependency(compile_args: true, includes: true)
   deps += vapoursynth_dep
   install_dir = vapoursynth_dep.get_variable(pkgconfig: 'libdir') / 'vapoursynth'
