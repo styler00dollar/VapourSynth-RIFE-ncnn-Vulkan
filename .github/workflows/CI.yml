@@ -3,7 +3,7 @@ name: CI
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
-  build:
+  Ubuntu:
     runs-on: ubuntu-latest
 
     env:
@@ -16,8 +16,10 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Print compiler version
-      run: ${{ env.CC }} --version
+    - name: Install GCC 11
+      run: |
+        sudo apt-get update
+        sudo apt-get install g++-11 -y
 
     - name: Setup Python
       uses: actions/setup-python@v2
@@ -29,10 +31,10 @@ jobs:
         python -m pip install --upgrade pip
         pip install meson
 
-    - name: Install ninja-build tool
-      uses: seanmiddleditch/gha-setup-ninja@v3
-      with:
-        version: 1.10.2
+    - name: Install ninja
+      run: |
+        sudo apt-get update
+        sudo apt-get install ninja-build
 
     - name: Install zimg
       run: |
@@ -43,6 +45,7 @@ jobs:
         make -j2
         sudo make install -j2
         popd
+        rm -rf zimg
 
     - name: Install VapourSynth
       run: |
@@ -53,13 +56,102 @@ jobs:
         make -j2
         sudo make install -j2
         popd
+        rm -rf vapoursynth
 
-    - name: Install Vulkan loader library
-      run: |
-        sudo apt-get update
-        sudo apt-get install libvulkan-dev
+    - name: Install libvulkan-dev
+      run: sudo apt-get install libvulkan-dev
 
     - name: Build
       run: |
-        meson build
+        meson build -Dcpp_link_args=-static-libstdc++
         ninja -C build
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: librife.so
+        path: build/librife.so
+
+  macOS:
+    runs-on: macos-latest
+
+    env:
+      CC: gcc-11
+      CXX: g++-11
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Install automake
+      run: |
+        brew update
+        brew install automake
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x # Version range or exact version of a Python version to use, using SemVer's version range syntax
+
+    - name: Install meson
+      run: |
+        python -m pip install --upgrade pip
+        pip install meson
+
+    - name: Install ninja
+      run: brew install ninja
+
+    - name: Install zimg
+      run: |
+        git clone https://github.com/sekrit-twc/zimg --branch v3.0 --depth 1
+        pushd zimg
+        ./autogen.sh
+        ./configure --disable-static --disable-simd
+        make -j3
+        sudo make install -j3
+        popd
+        rm -rf zimg
+
+    - name: Install VapourSynth
+      run: |
+        git clone https://github.com/vapoursynth/vapoursynth --depth 1
+        pushd vapoursynth
+        ./autogen.sh
+        ./configure --disable-static --disable-x86-asm --disable-vsscript --disable-vspipe --disable-python-module --disable-plugins
+        make -j3
+        sudo make install -j3
+        popd
+        rm -rf vapoursynth
+
+    - name: Cache Vulkan SDK
+      id: cache-vulkansdk
+      uses: actions/cache@v2
+      with:
+        path: vulkansdk-macos-1.2.170.0
+        key: vulkansdk-macos-1.2.170.0
+
+    - name: Install Vulkan SDK
+      if: steps.cache-vulkansdk.outputs.cache-hit != 'true'
+      run: |
+        wget https://sdk.lunarg.com/sdk/download/1.2.170.0/mac/vulkansdk-macos-1.2.170.0.dmg
+        hdiutil attach vulkansdk-macos-1.2.170.0.dmg
+        cp -r /Volumes/vulkansdk-macos-1.2.170.0 .
+        rm -rf vulkansdk-macos-1.2.170.0/Applications
+        find vulkansdk-macos-1.2.170.0 -type f | grep -v -E 'vulkan|glslang|MoltenVK' | xargs rm
+        hdiutil detach /Volumes/vulkansdk-macos-1.2.170.0
+
+    - name: Set VULKAN_SDK
+      run: echo "VULKAN_SDK=$GITHUB_WORKSPACE/vulkansdk-macos-1.2.170.0/macOS" >> $GITHUB_ENV
+
+    - name: Build
+      run: |
+        meson build -Dcpp_args=-I$GITHUB_WORKSPACE/vulkansdk-macos-1.2.170.0/MoltenVK/include -Dcpp_link_args=-static-libstdc++
+        ninja -C build
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: librife.dylib
+        path: build/librife.dylib

@@ -10,7 +10,7 @@ cxx = meson.get_compiler('cpp')
 gcc_syntax = cxx.get_argument_syntax() == 'gcc'
 
 if get_option('buildtype') == 'release'
-  add_project_arguments(gcc_syntax ? ['-fno-math-errno', '-fno-trapping-math'] : ['/GS-', '/fp:except-'], language: 'cpp')
+  add_global_arguments(gcc_syntax ? ['-fno-math-errno', '-fno-trapping-math'] : ['/GS-', '/fp:except-'], language: 'cpp')
 endif
 
 deps = []
@@ -24,8 +24,6 @@ else
   add_project_arguments('/DNOMINMAX', '/std:c++latest', language: 'cpp')
   install_dir = get_option('libdir') / 'vapoursynth'
 endif
-
-deps += dependency('vulkan')
 
 cmake = import('cmake')
 
@@ -125,6 +123,16 @@ opt_var.add_cmake_defines({'WITH_LAYER_softplus': false})
 opt_var.add_cmake_defines({'WITH_LAYER_gru': false})
 opt_var.add_cmake_defines({'WITH_LAYER_multiheadattention': false})
 opt_var.add_cmake_defines({'WITH_LAYER_gelu': false})
+
+if host_machine.system() == 'darwin'
+  opt_var.add_cmake_defines({'CMAKE_OSX_ARCHITECTURES': 'x86_64'})
+  opt_var.add_cmake_defines({'Vulkan_INCLUDE_DIR': '/Users/runner/work/VapourSynth-RIFE-ncnn-Vulkan/VapourSynth-RIFE-ncnn-Vulkan/vulkansdk-macos-1.2.170.0/MoltenVK/include'})
+  opt_var.add_cmake_defines({'Vulkan_LIBRARY': '/Users/runner/work/VapourSynth-RIFE-ncnn-Vulkan/VapourSynth-RIFE-ncnn-Vulkan/vulkansdk-macos-1.2.170.0/MoltenVK/MoltenVK.xcframework/macos-arm64_x86_64/libMoltenVK.a'})
+endif
+
+if gcc_syntax
+  opt_var.append_compile_args('cpp', '-fvisibility=hidden')
+endif
 
 opt_var.set_install(false)
 
