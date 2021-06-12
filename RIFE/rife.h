@@ -15,9 +15,9 @@ public:
     ~RIFE();
 
 #if _WIN32
-    int load(const std::wstring& modeldir, const bool fp32);
+    int load(const std::wstring& modeldir);
 #else
-    int load(const std::string& modeldir, const bool fp32);
+    int load(const std::string& modeldir);
 #endif
 
     int process(const float* src0R, const float* src0G, const float* src0B,

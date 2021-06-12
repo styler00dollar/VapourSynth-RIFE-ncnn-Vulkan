@@ -1,7 +1,6 @@
-[![CI](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml/badge.svg)](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml)
-
 Description
 ===========
+[![CI](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml/badge.svg)](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml)
 
 RIFE filter for VapourSynth, based on [rife-ncnn-vulkan](https://github.com/nihui/rife-ncnn-vulkan).
 
@@ -9,7 +8,7 @@ RIFE filter for VapourSynth, based on [rife-ncnn-vulkan](https://github.com/nihu
 Usage
 =====
 
-    rife.RIFE(clip clip[, int model=0, int gpu_id=auto, int gpu_thread=2, bint tta=False, bint uhd=False, bint sc=False, bint fp32=False, bint list_gpu=False])
+    rife.RIFE(clip clip[, int model=0, int gpu_id=auto, int gpu_thread=2, bint tta=False, bint uhd=False, bint sc=False, bint list_gpu=False])
 
 * clip: Clip to process. Only planar RGB format with float sample type of 32 bit depth is supported.
 
@@ -27,8 +26,6 @@ Usage
 * uhd: UHD mode. Recommended for 2K above resolution.
 
 * sc: Repeat last frame at scene change to avoid artifacts. You must invoke `misc.SCDetect` on YUV or Gray format of the input beforehand so as to set frame properties.
-
-* fp32: Use single precision FP32 instead of half precision FP16. Note that mixing one instance using `fp32=False` with the other instance using `fp32=True` in the same script will mysteriously cause the other instance to produce black frame.
 
 * list_gpu: Print a list of available GPU device.
 

@@ -116,16 +116,16 @@ static void load_param_model(ncnn::Net& net, const std::string& modeldir, const 
 #endif
 
 #if _WIN32
-int RIFE::load(const std::wstring& modeldir, const bool fp32)
+int RIFE::load(const std::wstring& modeldir)
 #else
-int RIFE::load(const std::string& modeldir, const bool fp32)
+int RIFE::load(const std::string& modeldir)
 #endif
 {
     ncnn::Option opt;
     opt.num_threads = num_threads;
     opt.use_vulkan_compute = vkdev ? true : false;
-    opt.use_fp16_packed = !fp32;
-    opt.use_fp16_storage = !fp32;
+    opt.use_fp16_packed = true;
+    opt.use_fp16_storage = true;
     opt.use_fp16_arithmetic = false;
     opt.use_int8_storage = false;
 

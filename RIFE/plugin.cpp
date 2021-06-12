@@ -165,7 +165,6 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         auto tta{ !!vsapi->propGetInt(in, "tta", 0, &err) };
         auto uhd{ !!vsapi->propGetInt(in, "uhd", 0, &err) };
         d->sceneChange = !!vsapi->propGetInt(in, "sc", 0, &err);
-        auto fp32{ !!vsapi->propGetInt(in, "fp32", 0, &err) };
 
         if (model < 0 || model > 2)
             throw "model must be 0, 1, or 2";
@@ -262,9 +261,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         auto bufferSize{ MultiByteToWideChar(CP_UTF8, 0, modelPath.c_str(), -1, nullptr, 0) };
         auto wbuffer{ std::make_unique<wchar_t[]>(bufferSize) };
         MultiByteToWideChar(CP_UTF8, 0, modelPath.c_str(), -1, wbuffer.get(), bufferSize);
-        d->rife->load(wbuffer.get(), fp32);
+        d->rife->load(wbuffer.get());
 #else
-        d->rife->load(modelPath, fp32);
+        d->rife->load(modelPath);
 #endif
 
         d->semaphore = std::make_unique<std::counting_semaphore<>>(gpuThread);
@@ -293,7 +292,6 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit(VSConfigPlugin configFunc, VSRegiste
                  "tta:int:opt;"
                  "uhd:int:opt;"
                  "sc:int:opt;"
-                 "fp32:int:opt;"
                  "list_gpu:int:opt;",
                  rifeCreate, nullptr, plugin);
 }
