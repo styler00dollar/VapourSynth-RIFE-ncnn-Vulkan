@@ -162,7 +162,7 @@ int RIFE::load(const std::string& modeldir)
 #endif
 
         {
-            static std::vector<uint32_t> spirv;
+            std::vector<uint32_t> spirv;
             static ncnn::Mutex lock;
             {
                 ncnn::MutexLockGuard guard(lock);
@@ -181,7 +181,7 @@ int RIFE::load(const std::string& modeldir)
         }
 
         {
-            static std::vector<uint32_t> spirv;
+            std::vector<uint32_t> spirv;
             static ncnn::Mutex lock;
             {
                 ncnn::MutexLockGuard guard(lock);
@@ -202,7 +202,7 @@ int RIFE::load(const std::string& modeldir)
 
     if (vkdev && tta_mode)
     {
-        static std::vector<uint32_t> spirv;
+        std::vector<uint32_t> spirv;
         static ncnn::Mutex lock;
         {
             ncnn::MutexLockGuard guard(lock);
@@ -228,7 +228,7 @@ int RIFE::load(const std::string& modeldir)
 
     if (vkdev && tta_temporal_mode)
     {
-        static std::vector<uint32_t> spirv;
+        std::vector<uint32_t> spirv;
         static ncnn::Mutex lock;
         {
             ncnn::MutexLockGuard guard(lock);
@@ -254,7 +254,7 @@ int RIFE::load(const std::string& modeldir)
 
     if (vkdev && tta_temporal_mode)
     {
-        static std::vector<uint32_t> spirv;
+        std::vector<uint32_t> spirv;
         static ncnn::Mutex lock;
         {
             ncnn::MutexLockGuard guard(lock);

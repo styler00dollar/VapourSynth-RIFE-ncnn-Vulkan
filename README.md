@@ -21,7 +21,7 @@ Usage
 
 * gpu_thread: Thread count for interpolation. Using larger values may increase GPU usage and consume more GPU memory. If you find that your GPU is hungry, try increasing thread count to achieve faster processing.
 
-* tta: TTA(Test-Time Augmentation) mode. It increases quality, but significantly slower. Note that mixing one instance using `tta=False` with the other instance using `tta=True` in the same script will mysteriously crash.
+* tta: TTA(Test-Time Augmentation) mode. It increases quality, but significantly slower.
 
 * uhd: UHD mode. Recommended for 2K above resolution.
 
