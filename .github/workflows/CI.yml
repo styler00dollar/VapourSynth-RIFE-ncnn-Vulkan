@@ -74,8 +74,8 @@ jobs:
     runs-on: macos-latest
 
     env:
-      CC: gcc-11
-      CXX: g++-11
+      CC: /usr/local/opt/llvm/bin/clang
+      CXX: /usr/local/opt/llvm/bin/clang++
 
     steps:
     - name: Checkout
@@ -145,7 +145,7 @@ jobs:
 
     - name: Build
       run: |
-        meson build -Dcpp_args=-I$VULKAN_SDK/include -Dcpp_link_args=-static-libstdc++
+        meson build -Dcpp_args=-I$VULKAN_SDK/include
         ninja -C build
 
     - name: Upload a Build Artifact
