@@ -126,8 +126,6 @@ opt_var.add_cmake_defines({'WITH_LAYER_gelu': false})
 
 if host_machine.system() == 'darwin'
   opt_var.add_cmake_defines({'CMAKE_OSX_ARCHITECTURES': 'x86_64'})
-  opt_var.add_cmake_defines({'Vulkan_INCLUDE_DIR': '/Users/runner/work/VapourSynth-RIFE-ncnn-Vulkan/VapourSynth-RIFE-ncnn-Vulkan/vulkansdk-macos-1.2.170.0/MoltenVK/include'})
-  opt_var.add_cmake_defines({'Vulkan_LIBRARY': '/Users/runner/work/VapourSynth-RIFE-ncnn-Vulkan/VapourSynth-RIFE-ncnn-Vulkan/vulkansdk-macos-1.2.170.0/MoltenVK/MoltenVK.xcframework/macos-arm64_x86_64/libMoltenVK.a'})
 endif
 
 if gcc_syntax

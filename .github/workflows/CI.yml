@@ -145,7 +145,7 @@ jobs:
 
     - name: Build
       run: |
-        meson build -Dcpp_args=-I$GITHUB_WORKSPACE/vulkansdk-macos-1.2.170.0/MoltenVK/include -Dcpp_link_args=-static-libstdc++
+        meson build -Dcpp_args=-I$VULKAN_SDK/include -Dcpp_link_args=-static-libstdc++
         ninja -C build
 
     - name: Upload a Build Artifact
