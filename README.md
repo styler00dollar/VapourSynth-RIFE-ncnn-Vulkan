@@ -1,13 +1,10 @@
-Description
-===========
+# RIFE
 [![CI](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml/badge.svg)](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml)
 
 RIFE filter for VapourSynth, based on [rife-ncnn-vulkan](https://github.com/nihui/rife-ncnn-vulkan).
 
 
-Usage
-=====
-
+## Usage
     rife.RIFE(clip clip[, int model=0, int gpu_id=auto, int gpu_thread=2, bint tta=False, bint uhd=False, bint sc=False, bint list_gpu=False])
 
 * clip: Clip to process. Only planar RGB format with float sample type of 32 bit depth is supported.
@@ -27,16 +24,15 @@ Usage
 
 * sc: Repeat last frame at scene change to avoid artifacts. You must invoke `misc.SCDetect` on YUV or Gray format of the input beforehand so as to set frame properties.
 
-* list_gpu: Print a list of available GPU device.
+* list_gpu: Simply print a list of available GPU devices on the frame and does no interpolation.
 
 
-Compilation
-===========
-
+## Compilation
 Requires `Vulkan SDK`.
 
 ```
 git submodule update --init --recursive --depth 1
 meson build
+ninja -C build
 ninja -C build install
 ```
