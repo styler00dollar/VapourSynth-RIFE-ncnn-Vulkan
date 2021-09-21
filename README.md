@@ -5,9 +5,9 @@ RIFE filter for VapourSynth, based on [rife-ncnn-vulkan](https://github.com/nihu
 
 
 ## Usage
-    rife.RIFE(clip clip[, int model=0, int gpu_id=auto, int gpu_thread=2, bint tta=False, bint uhd=False, bint sc=False, bint list_gpu=False])
+    rife.RIFE(vnode clip[, int model=0, int gpu_id=auto, int gpu_thread=2, bint tta=False, bint uhd=False, bint sc=False, bint list_gpu=False])
 
-* clip: Clip to process. Only planar RGB format with float sample type of 32 bit depth is supported.
+* clip: Clip to process. Only RGB format with float sample type of 32 bit depth is supported.
 
 * model: Model to use.
   * 0 = rife-v3.1

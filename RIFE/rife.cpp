@@ -336,7 +336,7 @@ int RIFE::load(const std::string& modeldir)
 int RIFE::process(const float* src0R, const float* src0G, const float* src0B,
                   const float* src1R, const float* src1G, const float* src1B,
                   float* dstR, float* dstG, float* dstB,
-                  const int w, const int h, const int stride) const
+                  const int w, const int h, const ptrdiff_t stride) const
 {
     const int channels = 3;//in0image.elempack;
 

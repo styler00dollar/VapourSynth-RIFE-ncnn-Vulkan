@@ -23,7 +23,7 @@ public:
     int process(const float* src0R, const float* src0G, const float* src0B,
                 const float* src1R, const float* src1G, const float* src1B,
                 float* dstR, float* dstG, float* dstB,
-                const int w, const int h, const int stride) const;
+                const int w, const int h, const ptrdiff_t stride) const;
 
     int process_cpu(const ncnn::Mat& in0image, const ncnn::Mat& in1image, float timestep, ncnn::Mat& outimage) const;
 

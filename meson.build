@@ -16,7 +16,7 @@ endif
 deps = []
 
 if gcc_syntax
-  vapoursynth_dep = dependency('vapoursynth').partial_dependency(compile_args: true, includes: true)
+  vapoursynth_dep = dependency('vapoursynth', version: '>=55').partial_dependency(compile_args: true, includes: true)
   deps += vapoursynth_dep
   install_dir = vapoursynth_dep.get_variable(pkgconfig: 'libdir') / 'vapoursynth'
 else
