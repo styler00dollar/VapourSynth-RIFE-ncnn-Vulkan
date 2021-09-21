@@ -22,14 +22,11 @@
   SOFTWARE.
 */
 
-#include <cmath>
-
 #include <atomic>
 #include <fstream>
 #include <memory>
 #include <semaphore>
 #include <string>
-#include <vector>
 
 #include <VapourSynth.h>
 #include <VSHelper.h>
@@ -44,8 +41,6 @@ struct RIFEData final {
     VSNodeRef* node;
     VSVideoInfo vi;
     bool sceneChange;
-    std::vector<int> sx;
-    std::vector<float> timesteps;
     std::unique_ptr<RIFE> rife;
     std::unique_ptr<std::counting_semaphore<>> semaphore;
 };
@@ -78,19 +73,15 @@ static const VSFrameRef* VS_CC rifeGetFrame(int n, int activationReason, void** 
     auto d{ static_cast<const RIFEData*>(*instanceData) };
 
     if (activationReason == arInitial) {
-        vsapi->requestFrameFilter(d->sx[n], d->node, frameCtx);
-        vsapi->requestFrameFilter(d->sx[n] + 1, d->node, frameCtx);
+        vsapi->requestFrameFilter(n / 2, d->node, frameCtx);
+        if ((n & 1) && n < d->vi.numFrames - 2)
+            vsapi->requestFrameFilter(n / 2 + 1, d->node, frameCtx);
     } else if (activationReason == arAllFramesReady) {
-        auto src0{ vsapi->getFrameFilter(d->sx[n], d->node, frameCtx) };
-        auto src1{ vsapi->getFrameFilter(d->sx[n] + 1, d->node, frameCtx) };
-        auto dst{
-            d->timesteps[n] == 0.0f ?
-            vsapi->copyFrame(src0, core) :
-            d->timesteps[n] == 1.0f ?
-            vsapi->copyFrame(src1, core) :
-            nullptr };
+        auto src0{ vsapi->getFrameFilter(n / 2, d->node, frameCtx) };
+        decltype(src0) src1 = nullptr;
+        VSFrameRef* dst = nullptr;
 
-        if (d->timesteps[n] == 0.5f) {
+        if ((n & 1) && n < d->vi.numFrames - 2) {
             auto sceneChange{ false };
 
             if (d->sceneChange) {
@@ -102,9 +93,12 @@ static const VSFrameRef* VS_CC rifeGetFrame(int n, int activationReason, void** 
             if (sceneChange) {
                 dst = vsapi->copyFrame(src0, core);
             } else {
+                src1 = vsapi->getFrameFilter(n / 2 + 1, d->node, frameCtx);
                 dst = vsapi->newVideoFrame(d->vi.format, d->vi.width, d->vi.height, src0, core);
                 filter(src0, src1, dst, d, vsapi);
             }
+        } else {
+            dst = vsapi->copyFrame(src0, core);
         }
 
         auto props{ vsapi->getFramePropsRW(dst) };
@@ -214,27 +208,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             return;
         }
 
-        auto count{ d->vi.numFrames };
-
         d->vi.numFrames *= 2;
         muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, 2, 1);
-
-        d->sx.resize(d->vi.numFrames);
-        d->timesteps.resize(d->vi.numFrames);
-
-        for (auto i{ 0 }; i < d->vi.numFrames; i++) {
-            auto fx{ i * 0.5f };
-            auto sx{ static_cast<int>(std::floor(fx)) };
-            fx -= sx;
-
-            if (sx >= count - 1) {
-                sx = count - 2;
-                fx = 1.0f;
-            }
-
-            d->sx[i] = sx;
-            d->timesteps[i] = fx;
-        }
 
         std::string pluginPath{ vsapi->getPluginPath(vsapi->getPluginById("com.holywu.rife", core)) };
         auto modelPath{ pluginPath.substr(0, pluginPath.rfind('/')) + "/models" };
