@@ -24,7 +24,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.x # Version range or exact version of a Python version to use, using SemVer's version range syntax
+        python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
 
     - name: Install meson
       run: |
@@ -50,7 +50,7 @@ jobs:
         git clone https://github.com/vapoursynth/vapoursynth --depth 1
         pushd vapoursynth
         ./autogen.sh
-        ./configure --disable-static --disable-x86-asm --disable-vsscript --disable-vspipe --disable-python-module --disable-plugins
+        ./configure --disable-static --disable-x86-asm --disable-vsscript --disable-vspipe --disable-python-module
         make -j2
         sudo make install -j2
         popd
@@ -61,14 +61,8 @@ jobs:
 
     - name: Build
       run: |
-        meson build -Dcpp_link_args=-static-libstdc++
+        meson build
         ninja -C build
-
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: librife.so
-        path: build/librife.so
 
   macOS:
     runs-on: macos-latest
@@ -91,7 +85,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.x # Version range or exact version of a Python version to use, using SemVer's version range syntax
+        python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
 
     - name: Install meson
       run: |
@@ -117,7 +111,7 @@ jobs:
         git clone https://github.com/vapoursynth/vapoursynth --depth 1
         pushd vapoursynth
         ./autogen.sh
-        ./configure --disable-static --disable-x86-asm --disable-vsscript --disable-vspipe --disable-python-module --disable-plugins
+        ./configure --disable-static --disable-x86-asm --disable-vsscript --disable-vspipe --disable-python-module
         make -j3
         sudo make install -j3
         popd
@@ -147,9 +141,3 @@ jobs:
       run: |
         meson build -Dcpp_args=-I$VULKAN_SDK/include
         ninja -C build
-
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: librife.dylib
-        path: build/librife.dylib
