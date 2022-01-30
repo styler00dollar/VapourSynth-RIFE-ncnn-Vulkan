@@ -2,7 +2,7 @@ project('RIFE-ncnn-Vulkan', 'cpp',
   default_options: ['buildtype=release', 'warning_level=2', 'b_lto=true', 'b_ndebug=if-release', 'cpp_std=c++20'],
   license: 'MIT',
   meson_version: '>=0.55.0',
-  version: '1'
+  version: '2'
 )
 
 cxx = meson.get_compiler('cpp')
@@ -10,7 +10,7 @@ cxx = meson.get_compiler('cpp')
 gcc_syntax = cxx.get_argument_syntax() == 'gcc'
 
 if get_option('buildtype') == 'release'
-  add_global_arguments(gcc_syntax ? ['-fno-math-errno', '-fno-trapping-math'] : ['/GS-', '/fp:except-'], language: 'cpp')
+  add_global_arguments(gcc_syntax ? ['-fno-math-errno', '-fno-trapping-math'] : '/GS-', language: 'cpp')
 endif
 
 deps = []
