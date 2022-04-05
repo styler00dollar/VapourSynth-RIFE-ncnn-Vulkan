@@ -41,12 +41,14 @@ static std::atomic<int> numGPUInstances{ 0 };
 struct RIFEData final {
     VSNode* node;
     VSVideoInfo vi;
+    int multiplier;
     bool sceneChange;
     std::unique_ptr<RIFE> rife;
     std::unique_ptr<std::counting_semaphore<>> semaphore;
 };
 
-static void filter(const VSFrame* src0, const VSFrame* src1, VSFrame* dst, const RIFEData* const VS_RESTRICT d, const VSAPI* vsapi) noexcept {
+static void filter(const VSFrame* src0, const VSFrame* src1, VSFrame* dst,
+                   const float timestep, const RIFEData* const VS_RESTRICT d, const VSAPI* vsapi) noexcept {
     const auto width{ vsapi->getFrameWidth(src0, 0) };
     const auto height{ vsapi->getFrameHeight(src0, 0) };
     const auto stride{ vsapi->getStride(src0, 0) / d->vi.format.bytesPerSample };
@@ -61,7 +63,7 @@ static void filter(const VSFrame* src0, const VSFrame* src1, VSFrame* dst, const
     auto dstB{ reinterpret_cast<float*>(vsapi->getWritePtr(dst, 2)) };
 
     d->semaphore->acquire();
-    d->rife->process(src0R, src0G, src0B, src1R, src1G, src1B, dstR, dstG, dstB, width, height, stride);
+    d->rife->process(src0R, src0G, src0B, src1R, src1G, src1B, dstR, dstG, dstB, width, height, stride, timestep);
     d->semaphore->release();
 }
 
@@ -69,16 +71,16 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
     auto d{ static_cast<const RIFEData*>(instanceData) };
 
     if (activationReason == arInitial) {
-        vsapi->requestFrameFilter(n / 2, d->node, frameCtx);
-        if ((n & 1) && n < d->vi.numFrames - 2)
-            vsapi->requestFrameFilter(n / 2 + 1, d->node, frameCtx);
+        vsapi->requestFrameFilter(n / d->multiplier, d->node, frameCtx);
+        if (n % d->multiplier != 0 && n < d->vi.numFrames - d->multiplier)
+            vsapi->requestFrameFilter(n / d->multiplier + 1, d->node, frameCtx);
     } else if (activationReason == arAllFramesReady) {
-        auto src0{ vsapi->getFrameFilter(n / 2, d->node, frameCtx) };
-        decltype(src0) src1{ nullptr };
-        VSFrame* dst{ nullptr };
+        auto src0{ vsapi->getFrameFilter(n / d->multiplier, d->node, frameCtx) };
+        decltype(src0) src1{};
+        VSFrame* dst{};
 
-        if ((n & 1) && n < d->vi.numFrames - 2) {
-            auto sceneChange{ false };
+        if (n % d->multiplier != 0 && n < d->vi.numFrames - d->multiplier) {
+            bool sceneChange{};
 
             if (d->sceneChange) {
                 auto props{ vsapi->getFramePropertiesRO(src0) };
@@ -89,9 +91,9 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
             if (sceneChange) {
                 dst = vsapi->copyFrame(src0, core);
             } else {
-                src1 = vsapi->getFrameFilter(n / 2 + 1, d->node, frameCtx);
+                src1 = vsapi->getFrameFilter(n / d->multiplier + 1, d->node, frameCtx);
                 dst = vsapi->newVideoFrame(&d->vi.format, d->vi.width, d->vi.height, src0, core);
-                filter(src0, src1, dst, d, vsapi);
+                filter(src0, src1, dst, static_cast<float>(n % d->multiplier) / d->multiplier, d, vsapi);
             }
         } else {
             dst = vsapi->copyFrame(src0, core);
@@ -102,7 +104,7 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
         auto durationNum{ vsapi->mapGetInt(props, "_DurationNum", 0, &errNum) };
         auto durationDen{ vsapi->mapGetInt(props, "_DurationDen", 0, &errDen) };
         if (!errNum && !errDen) {
-            vsh::muldivRational(&durationNum, &durationDen, 1, 2);
+            vsh::muldivRational(&durationNum, &durationDen, 1, d->multiplier);
             vsapi->mapSetInt(props, "_DurationNum", durationNum, maReplace);
             vsapi->mapSetInt(props, "_DurationDen", durationDen, maReplace);
         }
@@ -144,6 +146,10 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
 
         auto model{ vsapi->mapGetIntSaturated(in, "model", 0, &err) };
 
+        d->multiplier = vsapi->mapGetIntSaturated(in, "multiplier", 0, &err);
+        if (err)
+            d->multiplier = 2;
+
         auto gpuId{ vsapi->mapGetIntSaturated(in, "gpu_id", 0, &err) };
         if (err)
             gpuId = ncnn::get_default_gpu_index();
@@ -156,8 +162,17 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         auto uhd{ !!vsapi->mapGetInt(in, "uhd", 0, &err) };
         d->sceneChange = !!vsapi->mapGetInt(in, "sc", 0, &err);
 
-        if (model < 0 || model > 2)
-            throw "model must be 0, 1, or 2";
+        if (model < 0 || model > 9)
+            throw "model must be between 0 and 9 (inclusive)";
+
+        if (model != 9 && d->multiplier != 2)
+            throw "only rife-v4 model supports custom multiplier";
+
+        if (model == 9 && tta)
+            throw "rife-v4 model does not support TTA mode";
+
+        if (d->multiplier < 2)
+            throw "multiplier must be at least 2";
 
         if (gpuId < 0 || gpuId >= ncnn::get_gpu_count())
             throw "invalid GPU device";
@@ -166,9 +181,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             throw ("gpu_thread must be between 1 and " + std::to_string(ncnn::get_gpu_info(gpuId).compute_queue_count()) + " (inclusive)").c_str();
 
         if (d->vi.numFrames < 2)
-            throw "number of frames must be at least 2";
+            throw "clip's number of frames must be at least 2";
 
-        if (d->vi.numFrames > INT_MAX / 2)
+        if (d->vi.numFrames > INT_MAX / d->multiplier)
             throw "resulting clip is too long";
 
         if (!!vsapi->mapGetInt(in, "list_gpu", 0, &err)) {
@@ -201,29 +216,59 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             return;
         }
 
-        d->vi.numFrames *= 2;
-        vsh::muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, 2, 1);
+        d->vi.numFrames *= d->multiplier;
+        vsh::muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, d->multiplier, 1);
 
         std::string pluginPath{ vsapi->getPluginPath(vsapi->getPluginByID("com.holywu.rife", core)) };
         auto modelPath{ pluginPath.substr(0, pluginPath.rfind('/')) + "/models" };
+
+        bool rife_v2{}, rife_v4{};
+
         switch (model) {
         case 0:
-            modelPath += "/rife-v3.1";
+            modelPath += "/rife";
             break;
         case 1:
-            modelPath += "/rife-v2.4";
+            modelPath += "/rife-HD";
             break;
         case 2:
+            modelPath += "/rife-UHD";
+            break;
+        case 3:
             modelPath += "/rife-anime";
+            break;
+        case 4:
+            modelPath += "/rife-v2";
+            rife_v2 = true;
+            break;
+        case 5:
+            modelPath += "/rife-v2.3";
+            rife_v2 = true;
+            break;
+        case 6:
+            modelPath += "/rife-v2.4";
+            rife_v2 = true;
+            break;
+        case 7:
+            modelPath += "/rife-v3.0";
+            rife_v2 = true;
+            break;
+        case 8:
+            modelPath += "/rife-v3.1";
+            rife_v2 = true;
+            break;
+        case 9:
+            modelPath += "/rife-v4";
+            rife_v4 = true;
             break;
         }
 
-        std::ifstream ifs{ modelPath + "/contextnet.param" };
+        std::ifstream ifs{ modelPath + "/flownet.param" };
         if (!ifs.is_open())
             throw "failed to load model";
         ifs.close();
 
-        d->rife = std::make_unique<RIFE>(gpuId, tta, uhd, 1, model != 2);
+        d->rife = std::make_unique<RIFE>(gpuId, tta, uhd, 1, rife_v2, rife_v4);
 
 #ifdef _WIN32
         auto bufferSize{ MultiByteToWideChar(CP_UTF8, 0, modelPath.c_str(), -1, nullptr, 0) };
@@ -253,10 +298,13 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
 // Init
 
 VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin* plugin, const VSPLUGINAPI* vspapi) {
-    vspapi->configPlugin("com.holywu.rife", "rife", "Real-Time Intermediate Flow Estimation for Video Frame Interpolation", VS_MAKE_VERSION(2, 0), VAPOURSYNTH_API_VERSION, 0, plugin);
+    vspapi->configPlugin("com.holywu.rife", "rife", "Real-Time Intermediate Flow Estimation for Video Frame Interpolation",
+                         VS_MAKE_VERSION(2, 0), VAPOURSYNTH_API_VERSION, 0, plugin);
+
     vspapi->registerFunction("RIFE",
                              "clip:vnode;"
                              "model:int:opt;"
+                             "multiplier:int:opt;"
                              "gpu_id:int:opt;"
                              "gpu_thread:int:opt;"
                              "tta:int:opt;"

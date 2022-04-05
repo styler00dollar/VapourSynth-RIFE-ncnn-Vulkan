@@ -11,7 +11,7 @@
 class RIFE
 {
 public:
-    RIFE(int gpuid, bool tta_mode = false, bool uhd_mode = false, int num_threads = 1, bool rife_v2 = false);
+    RIFE(int gpuid, bool tta_mode = false, bool uhd_mode = false, int num_threads = 1, bool rife_v2 = false, bool rife_v4 = false);
     ~RIFE();
 
 #if _WIN32
@@ -23,9 +23,12 @@ public:
     int process(const float* src0R, const float* src0G, const float* src0B,
                 const float* src1R, const float* src1G, const float* src1B,
                 float* dstR, float* dstG, float* dstB,
-                const int w, const int h, const ptrdiff_t stride) const;
+                const int w, const int h, const ptrdiff_t stride, const float timestep) const;
 
-    int process_cpu(const ncnn::Mat& in0image, const ncnn::Mat& in1image, float timestep, ncnn::Mat& outimage) const;
+    int process_v4(const float* src0R, const float* src0G, const float* src0B,
+                   const float* src1R, const float* src1G, const float* src1B,
+                   float* dstR, float* dstG, float* dstB,
+                   const int w, const int h, const ptrdiff_t stride, const float timestep) const;
 
 private:
     ncnn::VulkanDevice* vkdev;
@@ -37,6 +40,7 @@ private:
     ncnn::Pipeline* rife_flow_tta_avg;
     ncnn::Pipeline* rife_flow_tta_temporal_avg;
     ncnn::Pipeline* rife_out_tta_temporal_avg;
+    ncnn::Pipeline* rife_v4_timestep;
     ncnn::Layer* rife_uhd_downscale_image;
     ncnn::Layer* rife_uhd_upscale_flow;
     ncnn::Layer* rife_uhd_double_flow;
@@ -46,6 +50,7 @@ private:
     bool uhd_mode;
     int num_threads;
     bool rife_v2;
+    bool rife_v4;
 };
 
 #endif // RIFE_H
