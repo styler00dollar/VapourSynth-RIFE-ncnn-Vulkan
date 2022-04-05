@@ -39,7 +39,6 @@ opt_var.add_cmake_defines({'NCNN_BUILD_TESTS': false})
 opt_var.add_cmake_defines({'NCNN_BUILD_TOOLS': false})
 opt_var.add_cmake_defines({'NCNN_BUILD_EXAMPLES': false})
 opt_var.add_cmake_defines({'NCNN_DISABLE_RTTI': true})
-opt_var.add_cmake_defines({'NCNN_DISABLE_EXCEPTION': true})
 opt_var.add_cmake_defines({'NCNN_INT8': false})
 
 opt_var.add_cmake_defines({'WITH_LAYER_absval': false})
