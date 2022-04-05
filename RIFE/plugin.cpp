@@ -145,6 +145,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         ++numGPUInstances;
 
         auto model{ vsapi->mapGetIntSaturated(in, "model", 0, &err) };
+        if (err)
+            model = 5;
 
         d->multiplier = vsapi->mapGetIntSaturated(in, "multiplier", 0, &err);
         if (err)
