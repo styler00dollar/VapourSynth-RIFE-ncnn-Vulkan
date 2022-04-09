@@ -13,7 +13,7 @@ if get_option('buildtype') == 'release'
   add_global_arguments(gcc_syntax ? ['-fno-math-errno', '-fno-trapping-math'] : '/GS-', language: 'cpp')
 endif
 
-deps = []
+deps = [dependency('openmp')]
 
 if gcc_syntax
   vapoursynth_dep = dependency('vapoursynth', version: '>=55').partial_dependency(compile_args: true, includes: true)
@@ -38,7 +38,6 @@ opt_var.add_cmake_defines({'NCNN_BUILD_BENCHMARK': false})
 opt_var.add_cmake_defines({'NCNN_BUILD_TESTS': false})
 opt_var.add_cmake_defines({'NCNN_BUILD_TOOLS': false})
 opt_var.add_cmake_defines({'NCNN_BUILD_EXAMPLES': false})
-opt_var.add_cmake_defines({'NCNN_DISABLE_RTTI': true})
 opt_var.add_cmake_defines({'NCNN_INT8': false})
 
 opt_var.add_cmake_defines({'WITH_LAYER_absval': false})

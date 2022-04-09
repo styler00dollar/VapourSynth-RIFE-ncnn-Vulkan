@@ -82,6 +82,9 @@ jobs:
         brew update
         brew install automake
 
+    - name: Install libomp
+      run: brew install libomp
+
     - name: Setup Python
       uses: actions/setup-python@v2
       with:
@@ -139,5 +142,5 @@ jobs:
 
     - name: Build
       run: |
-        meson build -Dcpp_args=-I$VULKAN_SDK/include
+        meson build -Dcpp_args=-I$VULKAN_SDK/include -Dcpp_link_args=-L/usr/local/lib
         ninja -C build
