@@ -22,6 +22,8 @@
     SOFTWARE.
 */
 
+#include <cmath>
+
 #include <atomic>
 #include <fstream>
 #include <memory>
@@ -41,7 +43,7 @@ static std::atomic<int> numGPUInstances{ 0 };
 struct RIFEData final {
     VSNode* node;
     VSVideoInfo vi;
-    int multiplier;
+    float multiplier;
     bool sceneChange;
     std::unique_ptr<RIFE> rife;
     std::unique_ptr<std::counting_semaphore<>> semaphore;
@@ -67,19 +69,23 @@ static void filter(const VSFrame* src0, const VSFrame* src1, VSFrame* dst,
     d->semaphore->release();
 }
 
-static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* instanceData, [[maybe_unused]] void** frameData, VSFrameContext* frameCtx, VSCore* core, const VSAPI* vsapi) {
+static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* instanceData, [[maybe_unused]] void** frameData,
+                                         VSFrameContext* frameCtx, VSCore* core, const VSAPI* vsapi) {
     auto d{ static_cast<const RIFEData*>(instanceData) };
 
+    auto frameNum{ static_cast<int>(n / d->multiplier) };
+    auto remainder{ std::fmod(static_cast<float>(n), d->multiplier) };
+
     if (activationReason == arInitial) {
-        vsapi->requestFrameFilter(n / d->multiplier, d->node, frameCtx);
-        if (n % d->multiplier != 0 && n < d->vi.numFrames - d->multiplier)
-            vsapi->requestFrameFilter(n / d->multiplier + 1, d->node, frameCtx);
+        vsapi->requestFrameFilter(frameNum, d->node, frameCtx);
+        if (remainder != 0 && n < d->vi.numFrames - d->multiplier)
+            vsapi->requestFrameFilter(frameNum + 1, d->node, frameCtx);
     } else if (activationReason == arAllFramesReady) {
-        auto src0{ vsapi->getFrameFilter(n / d->multiplier, d->node, frameCtx) };
+        auto src0{ vsapi->getFrameFilter(frameNum, d->node, frameCtx) };
         decltype(src0) src1{};
         VSFrame* dst{};
 
-        if (n % d->multiplier != 0 && n < d->vi.numFrames - d->multiplier) {
+        if (remainder != 0 && n < d->vi.numFrames - d->multiplier) {
             bool sceneChange{};
 
             if (d->sceneChange) {
@@ -91,9 +97,9 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
             if (sceneChange) {
                 dst = vsapi->copyFrame(src0, core);
             } else {
-                src1 = vsapi->getFrameFilter(n / d->multiplier + 1, d->node, frameCtx);
+                src1 = vsapi->getFrameFilter(frameNum + 1, d->node, frameCtx);
                 dst = vsapi->newVideoFrame(&d->vi.format, d->vi.width, d->vi.height, src0, core);
-                filter(src0, src1, dst, static_cast<float>(n % d->multiplier) / d->multiplier, d, vsapi);
+                filter(src0, src1, dst, remainder / d->multiplier, d, vsapi);
             }
         } else {
             dst = vsapi->copyFrame(src0, core);
@@ -104,7 +110,7 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
         auto durationNum{ vsapi->mapGetInt(props, "_DurationNum", 0, &errNum) };
         auto durationDen{ vsapi->mapGetInt(props, "_DurationDen", 0, &errDen) };
         if (!errNum && !errDen) {
-            vsh::muldivRational(&durationNum, &durationDen, 1, d->multiplier);
+            vsh::muldivRational(&durationNum, &durationDen, 100, static_cast<int64_t>(d->multiplier * 100));
             vsapi->mapSetInt(props, "_DurationNum", durationNum, maReplace);
             vsapi->mapSetInt(props, "_DurationDen", durationDen, maReplace);
         }
@@ -148,9 +154,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (err)
             model = 5;
 
-        d->multiplier = vsapi->mapGetIntSaturated(in, "multiplier", 0, &err);
+        d->multiplier = vsapi->mapGetFloatSaturated(in, "multiplier", 0, &err);
         if (err)
-            d->multiplier = 2;
+            d->multiplier = 2.0f;
 
         auto gpuId{ vsapi->mapGetIntSaturated(in, "gpu_id", 0, &err) };
         if (err)
@@ -173,14 +179,14 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (model == 9 && tta)
             throw "rife-v4 model does not support TTA mode";
 
-        if (d->multiplier < 2)
-            throw "multiplier must be at least 2";
+        if (d->multiplier <= 1)
+            throw "multiplier must be greater than 1";
 
         if (gpuId < 0 || gpuId >= ncnn::get_gpu_count())
             throw "invalid GPU device";
 
-        if (gpuThread < 1 || static_cast<uint32_t>(gpuThread) > ncnn::get_gpu_info(gpuId).compute_queue_count())
-            throw ("gpu_thread must be between 1 and " + std::to_string(ncnn::get_gpu_info(gpuId).compute_queue_count()) + " (inclusive)").c_str();
+        if (auto queue_count{ ncnn::get_gpu_info(gpuId).compute_queue_count() }; gpuThread < 1 || static_cast<uint32_t>(gpuThread) > queue_count)
+            throw ("gpu_thread must be between 1 and " + std::to_string(queue_count) + " (inclusive)").c_str();
 
         if (d->vi.numFrames < 2)
             throw "clip's number of frames must be at least 2";
@@ -218,8 +224,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             return;
         }
 
-        d->vi.numFrames *= d->multiplier;
-        vsh::muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, d->multiplier, 1);
+        d->vi.numFrames = static_cast<int>(d->vi.numFrames * d->multiplier);
+        vsh::muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, static_cast<int64_t>(d->multiplier * 100), 100);
 
         std::string pluginPath{ vsapi->getPluginPath(vsapi->getPluginByID("com.holywu.rife", core)) };
         auto modelPath{ pluginPath.substr(0, pluginPath.rfind('/')) + "/models" };
@@ -306,7 +312,7 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin* plugin, const VSPLUGINAPI
     vspapi->registerFunction("RIFE",
                              "clip:vnode;"
                              "model:int:opt;"
-                             "multiplier:int:opt;"
+                             "multiplier:float:opt;"
                              "gpu_id:int:opt;"
                              "gpu_thread:int:opt;"
                              "tta:int:opt;"
