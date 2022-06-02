@@ -73,8 +73,10 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
                                          VSFrameContext* frameCtx, VSCore* core, const VSAPI* vsapi) {
     auto d{ static_cast<const RIFEData*>(instanceData) };
 
-    auto frameNum{ static_cast<int>(n / d->multiplier) };
-    auto remainder{ std::fmod(static_cast<float>(n), d->multiplier) };
+    auto num{ static_cast<int64_t>(n) * 100 };
+    auto den{ static_cast<int64_t>(d->multiplier * 100) };
+    auto frameNum{ num / den };
+    auto remainder{ (num % den) / 100.0f };
 
     if (activationReason == arInitial) {
         vsapi->requestFrameFilter(frameNum, d->node, frameCtx);
