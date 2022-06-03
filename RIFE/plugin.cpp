@@ -40,9 +40,12 @@ static std::atomic<int> numGPUInstances{ 0 };
 
 struct RIFEData final {
     VSNode* node;
+    VSNode* psnr;
     VSVideoInfo vi;
     float multiplier;
     bool sceneChange;
+    bool skip;
+    double skip_threshold;
     std::unique_ptr<RIFE> rife;
     std::unique_ptr<std::counting_semaphore<>> semaphore;
 };
@@ -80,21 +83,29 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
         vsapi->requestFrameFilter(frameNum, d->node, frameCtx);
         if (remainder != 0 && n < d->vi.numFrames - d->multiplier)
             vsapi->requestFrameFilter(frameNum + 1, d->node, frameCtx);
+
+        if (d->skip)
+            vsapi->requestFrameFilter(frameNum, d->psnr, frameCtx);
     } else if (activationReason == arAllFramesReady) {
         auto src0{ vsapi->getFrameFilter(frameNum, d->node, frameCtx) };
         decltype(src0) src1{};
+        decltype(src0) psnr{};
         VSFrame* dst{};
 
         if (remainder != 0 && n < d->vi.numFrames - d->multiplier) {
             bool sceneChange{};
+            double psnr_y{};
+            int err;
 
-            if (d->sceneChange) {
-                auto props{ vsapi->getFramePropertiesRO(src0) };
-                int err;
-                sceneChange = !!vsapi->mapGetInt(props, "_SceneChangeNext", 0, &err);
+            if (d->sceneChange)
+                sceneChange = !!vsapi->mapGetInt(vsapi->getFramePropertiesRO(src0), "_SceneChangeNext", 0, &err);
+
+            if (d->skip) {
+                psnr = vsapi->getFrameFilter(frameNum, d->psnr, frameCtx);
+                psnr_y = vsapi->mapGetFloat(vsapi->getFramePropertiesRO(psnr), "psnr_y", 0, nullptr);
             }
 
-            if (sceneChange) {
+            if (sceneChange || psnr_y >= d->skip_threshold) {
                 dst = vsapi->copyFrame(src0, core);
             } else {
                 src1 = vsapi->getFrameFilter(frameNum + 1, d->node, frameCtx);
@@ -117,6 +128,7 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
 
         vsapi->freeFrame(src0);
         vsapi->freeFrame(src1);
+        vsapi->freeFrame(psnr);
         return dst;
     }
 
@@ -126,6 +138,7 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
 static void VS_CC rifeFree(void* instanceData, [[maybe_unused]] VSCore* core, const VSAPI* vsapi) {
     auto d{ static_cast<RIFEData*>(instanceData) };
     vsapi->freeNode(d->node);
+    vsapi->freeNode(d->psnr);
     delete d;
 
     if (--numGPUInstances == 0)
@@ -172,6 +185,11 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         auto tta{ !!vsapi->mapGetInt(in, "tta", 0, &err) };
         auto uhd{ !!vsapi->mapGetInt(in, "uhd", 0, &err) };
         d->sceneChange = !!vsapi->mapGetInt(in, "sc", 0, &err);
+        d->skip = !!vsapi->mapGetInt(in, "skip", 0, &err);
+
+        d->skip_threshold = vsapi->mapGetFloat(in, "skip_threshold", 0, &err);
+        if (err)
+            d->skip_threshold = 60.0;
 
         if (model < 0 || model > 9)
             throw "model must be between 0 and 9 (inclusive)";
@@ -184,6 +202,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
 
         if (auto queue_count{ ncnn::get_gpu_info(gpuId).compute_queue_count() }; gpuThread < 1 || static_cast<uint32_t>(gpuThread) > queue_count)
             throw ("gpu_thread must be between 1 and " + std::to_string(queue_count) + " (inclusive)").c_str();
+
+        if (d->skip_threshold < 0 || d->skip_threshold > 60)
+            throw "skip_threshold must be between 0.0 and 60.0 (inclusive)";
 
         if (d->vi.numFrames < 2)
             throw "clip's number of frames must be at least 2";
@@ -220,9 +241,6 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
                 ncnn::destroy_gpu_instance();
             return;
         }
-
-        d->vi.numFrames = static_cast<int>(d->vi.numFrames * d->multiplier);
-        vsh::muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, static_cast<int64_t>(d->multiplier * 100), 100);
 
         if (modelPath.empty()) {
             std::string pluginPath{ vsapi->getPluginPath(vsapi->getPluginByID("com.holywu.rife", core)) };
@@ -262,6 +280,11 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             }
         }
 
+        std::ifstream ifs{ modelPath + "/flownet.param" };
+        if (!ifs.is_open())
+            throw "failed to load model";
+        ifs.close();
+
         bool rife_v2{};
         bool rife_v4{};
 
@@ -271,9 +294,7 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             rife_v2 = true;
         else if (modelPath.find("rife-v4") != std::string::npos)
             rife_v4 = true;
-        else if (modelPath.find("rife") != std::string::npos)
-            ;
-        else
+        else if (modelPath.find("rife") == std::string::npos)
             throw "unknown model dir type";
 
         if (!rife_v4 && d->multiplier != 2)
@@ -282,10 +303,89 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (rife_v4 && tta)
             throw "rife-v4 model does not support TTA mode";
 
-        std::ifstream ifs{ modelPath + "/flownet.param" };
-        if (!ifs.is_open())
-            throw "failed to load model";
-        ifs.close();
+        d->semaphore = std::make_unique<std::counting_semaphore<>>(gpuThread);
+
+        if (d->skip) {
+            auto vmaf{ vsapi->getPluginByID("com.holywu.vmaf", core) };
+
+            if (!vmaf)
+                throw "VMAF plugin is required when skip=True";
+
+            auto args{ vsapi->createMap() };
+            vsapi->mapConsumeNode(args, "clip", d->node, maReplace);
+            vsapi->mapSetInt(args, "width", std::min(d->vi.width, 512), maReplace);
+            vsapi->mapSetInt(args, "height", std::min(d->vi.height, 512), maReplace);
+            vsapi->mapSetInt(args, "format", pfYUV420P8, maReplace);
+            vsapi->mapSetData(args, "matrix_s", "709", -1, dtUtf8, maReplace);
+
+            auto ret{ vsapi->invoke(vsapi->getPluginByID(VSH_RESIZE_PLUGIN_ID, core), "Bicubic", args) };
+            if (vsapi->mapGetError(ret)) {
+                vsapi->mapSetError(out, vsapi->mapGetError(ret));
+                vsapi->freeMap(args);
+                vsapi->freeMap(ret);
+
+                if (--numGPUInstances == 0)
+                    ncnn::destroy_gpu_instance();
+                return;
+            }
+
+            vsapi->clearMap(args);
+            auto reference{ vsapi->mapGetNode(ret, "clip", 0, nullptr) };
+            vsapi->mapSetNode(args, "clip", reference, maReplace);
+            vsapi->mapSetInt(args, "frames", d->vi.numFrames - 1, maReplace);
+
+            vsapi->freeMap(ret);
+            ret = vsapi->invoke(vsapi->getPluginByID(VSH_STD_PLUGIN_ID, core), "DuplicateFrames", args);
+            if (vsapi->mapGetError(ret)) {
+                vsapi->mapSetError(out, vsapi->mapGetError(ret));
+                vsapi->freeMap(args);
+                vsapi->freeMap(ret);
+
+                if (--numGPUInstances == 0)
+                    ncnn::destroy_gpu_instance();
+                return;
+            }
+
+            vsapi->clearMap(args);
+            vsapi->mapConsumeNode(args, "clip", vsapi->mapGetNode(ret, "clip", 0, nullptr), maReplace);
+            vsapi->mapSetInt(args, "first", 1, maReplace);
+
+            vsapi->freeMap(ret);
+            ret = vsapi->invoke(vsapi->getPluginByID(VSH_STD_PLUGIN_ID, core), "Trim", args);
+            if (vsapi->mapGetError(ret)) {
+                vsapi->mapSetError(out, vsapi->mapGetError(ret));
+                vsapi->freeMap(args);
+                vsapi->freeMap(ret);
+
+                if (--numGPUInstances == 0)
+                    ncnn::destroy_gpu_instance();
+                return;
+            }
+
+            vsapi->clearMap(args);
+            vsapi->mapConsumeNode(args, "reference", reference, maReplace);
+            vsapi->mapConsumeNode(args, "distorted", vsapi->mapGetNode(ret, "clip", 0, nullptr), maReplace);
+            vsapi->mapSetInt(args, "feature", 0, maReplace);
+
+            vsapi->freeMap(ret);
+            ret = vsapi->invoke(vmaf, "Metric", args);
+            if (vsapi->mapGetError(ret)) {
+                vsapi->mapSetError(out, vsapi->mapGetError(ret));
+                vsapi->freeMap(args);
+                vsapi->freeMap(ret);
+
+                if (--numGPUInstances == 0)
+                    ncnn::destroy_gpu_instance();
+                return;
+            }
+
+            d->psnr = vsapi->mapGetNode(ret, "clip", 0, nullptr);
+            vsapi->freeMap(args);
+            vsapi->freeMap(ret);
+        }
+
+        d->vi.numFrames = static_cast<int>(d->vi.numFrames * d->multiplier);
+        vsh::muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, static_cast<int64_t>(d->multiplier * 100), 100);
 
         d->rife = std::make_unique<RIFE>(gpuId, tta, uhd, 1, rife_v2, rife_v4);
 
@@ -297,11 +397,10 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
 #else
         d->rife->load(modelPath);
 #endif
-
-        d->semaphore = std::make_unique<std::counting_semaphore<>>(gpuThread);
     } catch (const char* error) {
         vsapi->mapSetError(out, ("RIFE: "s + error).c_str());
         vsapi->freeNode(d->node);
+        vsapi->freeNode(d->psnr);
 
         if (--numGPUInstances == 0)
             ncnn::destroy_gpu_instance();
@@ -330,6 +429,8 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin* plugin, const VSPLUGINAPI
                              "tta:int:opt;"
                              "uhd:int:opt;"
                              "sc:int:opt;"
+                             "skip:int:opt;"
+                             "skip_threshold:float:opt;"
                              "list_gpu:int:opt;",
                              "clip:vnode;",
                              rifeCreate, nullptr, plugin);
