@@ -42,7 +42,7 @@ struct RIFEData final {
     VSNode* node;
     VSNode* psnr;
     VSVideoInfo vi;
-    float multiplier;
+    double multiplier;
     bool sceneChange;
     bool skip;
     double skip_threshold;
@@ -76,8 +76,8 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
 
     auto num{ static_cast<int64_t>(n) * 100 };
     auto den{ static_cast<int64_t>(d->multiplier * 100) };
-    auto frameNum{ num / den };
-    auto remainder{ (num % den) / 100.0f };
+    auto frameNum{ static_cast<int>(num / den) };
+    auto remainder{ (num % den) / 100.0 };
 
     if (activationReason == arInitial) {
         vsapi->requestFrameFilter(frameNum, d->node, frameCtx);
@@ -110,7 +110,7 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
             } else {
                 src1 = vsapi->getFrameFilter(frameNum + 1, d->node, frameCtx);
                 dst = vsapi->newVideoFrame(&d->vi.format, d->vi.width, d->vi.height, src0, core);
-                filter(src0, src1, dst, remainder / d->multiplier, d, vsapi);
+                filter(src0, src1, dst, static_cast<float>(remainder / d->multiplier), d, vsapi);
             }
         } else {
             dst = vsapi->copyFrame(src0, core);
@@ -167,9 +167,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (err)
             model = 5;
 
-        d->multiplier = vsapi->mapGetFloatSaturated(in, "multiplier", 0, &err);
+        d->multiplier = vsapi->mapGetFloat(in, "multiplier", 0, &err);
         if (err)
-            d->multiplier = 2.0f;
+            d->multiplier = 2.0;
 
         auto model_path{ vsapi->mapGetData(in, "model_path", 0, &err) };
         std::string modelPath{ err ? "" : model_path };
