@@ -22,8 +22,6 @@
     SOFTWARE.
 */
 
-#include <cmath>
-
 #include <atomic>
 #include <fstream>
 #include <memory>
@@ -160,6 +158,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (err)
             d->multiplier = 2.0f;
 
+        auto model_path{ vsapi->mapGetData(in, "model_path", 0, &err) };
+        std::string modelPath{ err ? "" : model_path };
+
         auto gpuId{ vsapi->mapGetIntSaturated(in, "gpu_id", 0, &err) };
         if (err)
             gpuId = ncnn::get_default_gpu_index();
@@ -174,12 +175,6 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
 
         if (model < 0 || model > 9)
             throw "model must be between 0 and 9 (inclusive)";
-
-        if (model != 9 && d->multiplier != 2)
-            throw "only rife-v4 model supports custom multiplier";
-
-        if (model == 9 && tta)
-            throw "rife-v4 model does not support TTA mode";
 
         if (d->multiplier <= 1)
             throw "multiplier must be greater than 1";
@@ -229,49 +224,63 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         d->vi.numFrames = static_cast<int>(d->vi.numFrames * d->multiplier);
         vsh::muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, static_cast<int64_t>(d->multiplier * 100), 100);
 
-        std::string pluginPath{ vsapi->getPluginPath(vsapi->getPluginByID("com.holywu.rife", core)) };
-        auto modelPath{ pluginPath.substr(0, pluginPath.rfind('/')) + "/models" };
+        if (modelPath.empty()) {
+            std::string pluginPath{ vsapi->getPluginPath(vsapi->getPluginByID("com.holywu.rife", core)) };
+            modelPath = pluginPath.substr(0, pluginPath.rfind('/')) + "/models";
 
-        bool rife_v2{}, rife_v4{};
-
-        switch (model) {
-        case 0:
-            modelPath += "/rife";
-            break;
-        case 1:
-            modelPath += "/rife-HD";
-            break;
-        case 2:
-            modelPath += "/rife-UHD";
-            break;
-        case 3:
-            modelPath += "/rife-anime";
-            break;
-        case 4:
-            modelPath += "/rife-v2";
-            rife_v2 = true;
-            break;
-        case 5:
-            modelPath += "/rife-v2.3";
-            rife_v2 = true;
-            break;
-        case 6:
-            modelPath += "/rife-v2.4";
-            rife_v2 = true;
-            break;
-        case 7:
-            modelPath += "/rife-v3.0";
-            rife_v2 = true;
-            break;
-        case 8:
-            modelPath += "/rife-v3.1";
-            rife_v2 = true;
-            break;
-        case 9:
-            modelPath += "/rife-v4";
-            rife_v4 = true;
-            break;
+            switch (model) {
+            case 0:
+                modelPath += "/rife";
+                break;
+            case 1:
+                modelPath += "/rife-HD";
+                break;
+            case 2:
+                modelPath += "/rife-UHD";
+                break;
+            case 3:
+                modelPath += "/rife-anime";
+                break;
+            case 4:
+                modelPath += "/rife-v2";
+                break;
+            case 5:
+                modelPath += "/rife-v2.3";
+                break;
+            case 6:
+                modelPath += "/rife-v2.4";
+                break;
+            case 7:
+                modelPath += "/rife-v3.0";
+                break;
+            case 8:
+                modelPath += "/rife-v3.1";
+                break;
+            case 9:
+                modelPath += "/rife-v4";
+                break;
+            }
         }
+
+        bool rife_v2{};
+        bool rife_v4{};
+
+        if (modelPath.find("rife-v2") != std::string::npos)
+            rife_v2 = true;
+        else if (modelPath.find("rife-v3") != std::string::npos)
+            rife_v2 = true;
+        else if (modelPath.find("rife-v4") != std::string::npos)
+            rife_v4 = true;
+        else if (modelPath.find("rife") != std::string::npos)
+            ;
+        else
+            throw "unknown model dir type";
+
+        if (!rife_v4 && d->multiplier != 2)
+            throw "only rife-v4 model supports custom multiplier";
+
+        if (rife_v4 && tta)
+            throw "rife-v4 model does not support TTA mode";
 
         std::ifstream ifs{ modelPath + "/flownet.param" };
         if (!ifs.is_open())
@@ -315,6 +324,7 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin* plugin, const VSPLUGINAPI
                              "clip:vnode;"
                              "model:int:opt;"
                              "multiplier:float:opt;"
+                             "model_path:data:opt;"
                              "gpu_id:int:opt;"
                              "gpu_thread:int:opt;"
                              "tta:int:opt;"
