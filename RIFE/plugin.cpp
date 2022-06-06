@@ -407,8 +407,10 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         return;
     }
 
-    VSFilterDependency deps[]{ {d->node, rpGeneral} };
-    vsapi->createVideoFilter(out, "RIFE", &d->vi, rifeGetFrame, rifeFree, fmParallel, deps, 1, d.get(), core);
+    std::vector<VSFilterDependency> deps{ {d->node, rpGeneral} };
+    if (d->skip)
+        deps.push_back({ d->psnr, rpGeneral });
+    vsapi->createVideoFilter(out, "RIFE", &d->vi, rifeGetFrame, rifeFree, fmParallel, deps.data(), deps.size(), d.get(), core);
     d.release();
 }
 
