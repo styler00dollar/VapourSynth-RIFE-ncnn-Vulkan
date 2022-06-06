@@ -21,6 +21,10 @@ Real-Time Intermediate Flow Estimation for Video Frame Interpolation, based on [
   - 7 = rife-v3.0
   - 8 = rife-v3.1
   - 9 = rife-v4
+  # My custom models
+  - 10 = sudo_rife4_ensembleFalse_fastTrue
+  - 11 = sudo_rife4_ensembleTrue_fastFalse
+  - 12 = sudo_rife4_ensembleTrue_fastTrue 
 
 - factor_num, factor_den: Factor of target frame rate. For example `factor_num=5, factor_den=2` will multiply input clip FPS by 2.5. Only rife-v4 model supports custom frame rate.
 
