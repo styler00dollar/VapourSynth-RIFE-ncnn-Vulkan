@@ -94,7 +94,7 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
 
         if (remainder != 0 && n < d->vi.numFrames - d->multiplier) {
             bool sceneChange{};
-            double psnr_y{};
+            double psnr_y{ -1.0 };
             int err;
 
             if (d->sceneChange)
