@@ -25,7 +25,7 @@ else
 endif
 
 if get_option('use_system_ncnn')
-  deps += dependency('ncnn', method: 'cmake', modules: ['glslang', 'ncnn', 'OGLCompiler', 'OSDependent', 'SPIRV'])
+  deps += dependency('ncnn', method: 'cmake')
 else
   cmake = import('cmake')
 
