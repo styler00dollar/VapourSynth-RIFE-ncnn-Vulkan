@@ -13,8 +13,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      with:
-        submodules: recursive
 
     - name: Install GCC 12
       run: |
@@ -56,12 +54,25 @@ jobs:
         popd
         rm -rf vapoursynth
 
-    - name: Install libvulkan-dev
+    - name: Install glslang
+      run: sudo apt-get install glslang-dev
+
+    - name: Install libvulkan
       run: sudo apt-get install libvulkan-dev
+
+    - name: Install ncnn
+      run: |
+        git clone https://github.com/Tencent/ncnn --depth 1
+        pushd ncnn
+        cmake -S . -B build -DCMAKE_INSTALL_PREFIX=/usr/local -DNCNN_BUILD_BENCHMARK=OFF -DNCNN_BUILD_EXAMPLES=OFF -DNCNN_BUILD_TOOLS=OFF -DNCNN_SHARED_LIB=ON -DNCNN_SYSTEM_GLSLANG=ON -DNCNN_VULKAN=ON -DGLSLANG_TARGET_DIR=/usr/lib/x86_64-linux-gnu/cmake -G Ninja
+        ninja -C build
+        sudo ninja -C build install
+        popd
+        rm -rf ncnn
 
     - name: Build
       run: |
-        meson build
+        meson build -Duse_system_ncnn=true
         ninja -C build
 
   macOS:
@@ -74,8 +85,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-      with:
-        submodules: recursive
 
     - name: Install automake
       run: |
@@ -120,6 +129,9 @@ jobs:
         popd
         rm -rf vapoursynth
 
+    - name: Install glslang
+      run: brew install glslang
+
     - name: Cache Vulkan SDK
       id: cache-vulkansdk
       uses: actions/cache@v3
@@ -140,7 +152,10 @@ jobs:
     - name: Set VULKAN_SDK
       run: echo "VULKAN_SDK=$GITHUB_WORKSPACE/vulkansdk-macos-1.2.170.0/macOS" >> $GITHUB_ENV
 
+    - name: Install ncnn
+      run: brew install ncnn
+
     - name: Build
       run: |
-        meson build -Dcpp_args=-I$VULKAN_SDK/include -Dcpp_link_args=-L/usr/local/lib
+        meson build -Dcpp_args=-I$VULKAN_SDK/include -Dcpp_link_args=-L/usr/local/lib -Duse_system_ncnn=true
         ninja -C build
