@@ -138,6 +138,8 @@ else
   opt_var.add_cmake_defines({'WITH_LAYER_deconvolutiondepthwise1d': false})
   opt_var.add_cmake_defines({'WITH_LAYER_deconvolution3d': false})
   opt_var.add_cmake_defines({'WITH_LAYER_deconvolutiondepthwise3d': false})
+  opt_var.add_cmake_defines({'WITH_LAYER_einsum': false})
+  opt_var.add_cmake_defines({'WITH_LAYER_deformableconv2d': false})
 
   if host_machine.system() == 'darwin'
     opt_var.add_cmake_defines({'CMAKE_OSX_ARCHITECTURES': 'x86_64'})
