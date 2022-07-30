@@ -44,7 +44,7 @@ struct RIFEData final {
     VSVideoInfo vi;
     bool sceneChange;
     bool skip;
-    double skip_threshold;
+    double skipThreshold;
     int64_t factor;
     int64_t factorNum;
     int64_t factorDen;
@@ -94,7 +94,7 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
 
         if (remainder != 0 && n < d->vi.numFrames - d->factor) {
             bool sceneChange{};
-            double psnr_y{ -1.0 };
+            double psnrY{ -1.0 };
             int err;
 
             if (d->sceneChange)
@@ -102,10 +102,10 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
 
             if (d->skip) {
                 psnr = vsapi->getFrameFilter(frameNum, d->psnr, frameCtx);
-                psnr_y = vsapi->mapGetFloat(vsapi->getFramePropertiesRO(psnr), "psnr_y", 0, nullptr);
+                psnrY = vsapi->mapGetFloat(vsapi->getFramePropertiesRO(psnr), "psnr_y", 0, nullptr);
             }
 
-            if (sceneChange || psnr_y >= d->skip_threshold) {
+            if (sceneChange || psnrY >= d->skipThreshold) {
                 dst = vsapi->copyFrame(src0, core);
             } else {
                 src1 = vsapi->getFrameFilter(frameNum + 1, d->node, frameCtx);
@@ -191,9 +191,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         d->sceneChange = !!vsapi->mapGetInt(in, "sc", 0, &err);
         d->skip = !!vsapi->mapGetInt(in, "skip", 0, &err);
 
-        d->skip_threshold = vsapi->mapGetFloat(in, "skip_threshold", 0, &err);
+        d->skipThreshold = vsapi->mapGetFloat(in, "skip_threshold", 0, &err);
         if (err)
-            d->skip_threshold = 60.0;
+            d->skipThreshold = 60.0;
 
         if (model < 0 || model > 9)
             throw "model must be between 0 and 9 (inclusive)";
@@ -207,10 +207,10 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (gpuId < 0 || gpuId >= ncnn::get_gpu_count())
             throw "invalid GPU device";
 
-        if (auto queue_count{ ncnn::get_gpu_info(gpuId).compute_queue_count() }; gpuThread < 1 || static_cast<uint32_t>(gpuThread) > queue_count)
-            throw ("gpu_thread must be between 1 and " + std::to_string(queue_count) + " (inclusive)").c_str();
+        if (auto queueCount{ ncnn::get_gpu_info(gpuId).compute_queue_count() }; gpuThread < 1 || static_cast<uint32_t>(gpuThread) > queueCount)
+            throw ("gpu_thread must be between 1 and " + std::to_string(queueCount) + " (inclusive)").c_str();
 
-        if (d->skip_threshold < 0 || d->skip_threshold > 60)
+        if (d->skipThreshold < 0 || d->skipThreshold > 60)
             throw "skip_threshold must be between 0.0 and 60.0 (inclusive)";
 
         if (d->vi.numFrames < 2)

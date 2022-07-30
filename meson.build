@@ -13,7 +13,11 @@ if get_option('buildtype') == 'release'
   add_global_arguments(gcc_syntax ? ['-fno-math-errno', '-fno-trapping-math'] : '/GS-', language: 'cpp')
 endif
 
-deps = [dependency('openmp'), dependency('threads'), dependency('vulkan')]
+deps = [
+  dependency('openmp'),
+  dependency('threads'),
+  dependency('vulkan')
+]
 
 if gcc_syntax
   vapoursynth_dep = dependency('vapoursynth', version: '>=55').partial_dependency(compile_args: true, includes: true)
