@@ -42,10 +42,12 @@ struct RIFEData final {
     VSNode* node;
     VSNode* psnr;
     VSVideoInfo vi;
-    double multiplier;
     bool sceneChange;
     bool skip;
     double skip_threshold;
+    int64_t factor;
+    int64_t factorNum;
+    int64_t factorDen;
     std::unique_ptr<RIFE> rife;
     std::unique_ptr<std::counting_semaphore<>> semaphore;
 };
@@ -74,14 +76,12 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
                                          VSFrameContext* frameCtx, VSCore* core, const VSAPI* vsapi) {
     auto d{ static_cast<const RIFEData*>(instanceData) };
 
-    auto num{ static_cast<int64_t>(n) * 100 };
-    auto den{ static_cast<int64_t>(d->multiplier * 100) };
-    auto frameNum{ static_cast<int>(num / den) };
-    auto remainder{ (num % den) / 100.0 };
+    auto frameNum{ static_cast<int>(n * d->factorDen / d->factorNum) };
+    auto remainder{ n * d->factorDen % d->factorNum };
 
     if (activationReason == arInitial) {
         vsapi->requestFrameFilter(frameNum, d->node, frameCtx);
-        if (remainder != 0 && n < d->vi.numFrames - d->multiplier)
+        if (remainder != 0 && n < d->vi.numFrames - d->factor)
             vsapi->requestFrameFilter(frameNum + 1, d->node, frameCtx);
 
         if (d->skip)
@@ -92,7 +92,7 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
         decltype(src0) psnr{};
         VSFrame* dst{};
 
-        if (remainder != 0 && n < d->vi.numFrames - d->multiplier) {
+        if (remainder != 0 && n < d->vi.numFrames - d->factor) {
             bool sceneChange{};
             double psnr_y{ -1.0 };
             int err;
@@ -110,7 +110,7 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
             } else {
                 src1 = vsapi->getFrameFilter(frameNum + 1, d->node, frameCtx);
                 dst = vsapi->newVideoFrame(&d->vi.format, d->vi.width, d->vi.height, src0, core);
-                filter(src0, src1, dst, static_cast<float>(remainder / d->multiplier), d, vsapi);
+                filter(src0, src1, dst, static_cast<float>(remainder) / d->factorNum, d, vsapi);
             }
         } else {
             dst = vsapi->copyFrame(src0, core);
@@ -121,7 +121,7 @@ static const VSFrame* VS_CC rifeGetFrame(int n, int activationReason, void* inst
         auto durationNum{ vsapi->mapGetInt(props, "_DurationNum", 0, &errNum) };
         auto durationDen{ vsapi->mapGetInt(props, "_DurationDen", 0, &errDen) };
         if (!errNum && !errDen) {
-            vsh::muldivRational(&durationNum, &durationDen, 100, static_cast<int64_t>(d->multiplier * 100));
+            vsh::muldivRational(&durationNum, &durationDen, d->factorDen, d->factorNum);
             vsapi->mapSetInt(props, "_DurationNum", durationNum, maReplace);
             vsapi->mapSetInt(props, "_DurationDen", durationDen, maReplace);
         }
@@ -167,9 +167,13 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (err)
             model = 5;
 
-        d->multiplier = vsapi->mapGetFloat(in, "multiplier", 0, &err);
+        d->factorNum = vsapi->mapGetInt(in, "fps_num", 0, &err);
         if (err)
-            d->multiplier = 2.0;
+            d->factorNum = 2 * d->vi.fpsNum;
+
+        d->factorDen = vsapi->mapGetInt(in, "fps_den", 0, &err);
+        if (err)
+            d->factorDen = d->vi.fpsDen;
 
         auto model_path{ vsapi->mapGetData(in, "model_path", 0, &err) };
         std::string modelPath{ err ? "" : model_path };
@@ -194,8 +198,11 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (model < 0 || model > 9)
             throw "model must be between 0 and 9 (inclusive)";
 
-        if (d->multiplier <= 1)
-            throw "multiplier must be greater than 1";
+        if (d->factorNum < 1)
+            throw "fps_num must be at least 1";
+
+        if (d->factorDen < 1)
+            throw "fps_den must be at least 1";
 
         if (gpuId < 0 || gpuId >= ncnn::get_gpu_count())
             throw "invalid GPU device";
@@ -209,8 +216,15 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (d->vi.numFrames < 2)
             throw "clip's number of frames must be at least 2";
 
-        if (d->vi.numFrames > INT_MAX / d->multiplier)
+        vsh::muldivRational(&d->factorNum, &d->factorDen, d->vi.fpsDen, d->vi.fpsNum);
+        vsh::muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, d->factorNum, d->factorDen);
+
+        if (d->vi.numFrames / d->factorDen > INT_MAX / d->factorNum)
             throw "resulting clip is too long";
+
+        d->vi.numFrames = static_cast<int>(d->vi.numFrames * d->factorNum / d->factorDen);
+
+        d->factor = d->factorNum / d->factorDen;
 
         if (!!vsapi->mapGetInt(in, "list_gpu", 0, &err)) {
             std::string text;
@@ -297,8 +311,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         else if (modelPath.find("rife") == std::string::npos)
             throw "unknown model dir type";
 
-        if (!rife_v4 && d->multiplier != 2)
-            throw "only rife-v4 model supports custom multiplier";
+        if (!rife_v4 && (d->factorNum != 2 || d->factorDen != 1))
+            throw "only rife-v4 model supports custom frame rate";
 
         if (rife_v4 && tta)
             throw "rife-v4 model does not support TTA mode";
@@ -384,9 +398,6 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             vsapi->freeMap(ret);
         }
 
-        d->vi.numFrames = static_cast<int>(d->vi.numFrames * d->multiplier);
-        vsh::muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, static_cast<int64_t>(d->multiplier * 100), 100);
-
         d->rife = std::make_unique<RIFE>(gpuId, tta, uhd, 1, rife_v2, rife_v4);
 
 #ifdef _WIN32
@@ -424,7 +435,8 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin* plugin, const VSPLUGINAPI
     vspapi->registerFunction("RIFE",
                              "clip:vnode;"
                              "model:int:opt;"
-                             "multiplier:float:opt;"
+                             "fps_num:int:opt;"
+                             "fps_den:int:opt;"
                              "model_path:data:opt;"
                              "gpu_id:int:opt;"
                              "gpu_thread:int:opt;"
