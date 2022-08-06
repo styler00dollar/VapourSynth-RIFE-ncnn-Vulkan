@@ -1,5 +1,6 @@
 # RIFE
 [![CI](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml/badge.svg)](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml)
+![downloads](https://img.shields.io/github/downloads/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/total.svg)
 
 Real-Time Intermediate Flow Estimation for Video Frame Interpolation, based on [rife-ncnn-vulkan](https://github.com/nihui/rife-ncnn-vulkan).
 
