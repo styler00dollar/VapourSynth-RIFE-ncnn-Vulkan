@@ -167,13 +167,21 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (err)
             model = 5;
 
-        d->factorNum = vsapi->mapGetInt(in, "fps_num", 0, &err);
+        auto factorNum{ vsapi->mapGetInt(in, "factor_num", 0, &err) };
         if (err)
-            d->factorNum = 2 * d->vi.fpsNum;
+            factorNum = 2;
 
-        d->factorDen = vsapi->mapGetInt(in, "fps_den", 0, &err);
+        auto factorDen{ vsapi->mapGetInt(in, "factor_den", 0, &err) };
         if (err)
-            d->factorDen = d->vi.fpsDen;
+            factorDen = 1;
+
+        auto fpsNum{ vsapi->mapGetInt(in, "fps_num", 0, &err) };
+        if (!err && fpsNum < 1)
+            throw "fps_num must be at least 1";
+
+        auto fpsDen{ vsapi->mapGetInt(in, "fps_den", 0, &err) };
+        if (!err && fpsDen < 1)
+            throw "fps_den must be at least 1";
 
         auto model_path{ vsapi->mapGetData(in, "model_path", 0, &err) };
         std::string modelPath{ err ? "" : model_path };
@@ -198,11 +206,14 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (model < 0 || model > 9)
             throw "model must be between 0 and 9 (inclusive)";
 
-        if (d->factorNum < 1)
-            throw "fps_num must be at least 1";
+        if (factorNum < 1)
+            throw "factor_num must be at least 1";
 
-        if (d->factorDen < 1)
-            throw "fps_den must be at least 1";
+        if (factorDen < 1)
+            throw "factor_den must be at least 1";
+
+        if (fpsNum && fpsDen && !(d->vi.fpsNum && d->vi.fpsDen))
+            throw "clip does not have a valid frame rate and hence fps_num and fps_den cannot be used";
 
         if (gpuId < 0 || gpuId >= ncnn::get_gpu_count())
             throw "invalid GPU device";
@@ -216,7 +227,14 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (d->vi.numFrames < 2)
             throw "clip's number of frames must be at least 2";
 
-        vsh::muldivRational(&d->factorNum, &d->factorDen, d->vi.fpsDen, d->vi.fpsNum);
+        if (fpsNum && fpsDen) {
+            vsh::muldivRational(&fpsNum, &fpsDen, d->vi.fpsDen, d->vi.fpsNum);
+            d->factorNum = fpsNum;
+            d->factorDen = fpsDen;
+        } else {
+            d->factorNum = factorNum;
+            d->factorDen = factorDen;
+        }
         vsh::muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, d->factorNum, d->factorDen);
 
         if (d->vi.numFrames / d->factorDen > INT_MAX / d->factorNum)
@@ -435,6 +453,8 @@ VS_EXTERNAL_API(void) VapourSynthPluginInit2(VSPlugin* plugin, const VSPLUGINAPI
     vspapi->registerFunction("RIFE",
                              "clip:vnode;"
                              "model:int:opt;"
+                             "factor_num:int:opt;"
+                             "factor_den:int:opt;"
                              "fps_num:int:opt;"
                              "fps_den:int:opt;"
                              "model_path:data:opt;"
