@@ -224,9 +224,6 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (d->skipThreshold < 0 || d->skipThreshold > 60)
             throw "skip_threshold must be between 0.0 and 60.0 (inclusive)";
 
-        if (d->vi.numFrames < 2)
-            throw "clip's number of frames must be at least 2";
-
         if (fpsNum && fpsDen) {
             vsh::muldivRational(&fpsNum, &fpsDen, d->vi.fpsDen, d->vi.fpsNum);
             d->factorNum = fpsNum;
@@ -237,9 +234,13 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         }
         vsh::muldivRational(&d->vi.fpsNum, &d->vi.fpsDen, d->factorNum, d->factorDen);
 
+        if (d->vi.numFrames < 2)
+            throw "clip's number of frames must be at least 2";
+
         if (d->vi.numFrames / d->factorDen > INT_MAX / d->factorNum)
             throw "resulting clip is too long";
 
+        auto oldNumFrames{ d->vi.numFrames };
         d->vi.numFrames = static_cast<int>(d->vi.numFrames * d->factorNum / d->factorDen);
 
         d->factor = d->factorNum / d->factorDen;
@@ -364,7 +365,7 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             vsapi->clearMap(args);
             auto reference{ vsapi->mapGetNode(ret, "clip", 0, nullptr) };
             vsapi->mapSetNode(args, "clip", reference, maReplace);
-            vsapi->mapSetInt(args, "frames", d->vi.numFrames - 1, maReplace);
+            vsapi->mapSetInt(args, "frames", oldNumFrames - 1, maReplace);
 
             vsapi->freeMap(ret);
             ret = vsapi->invoke(vsapi->getPluginByID(VSH_STD_PLUGIN_ID, core), "DuplicateFrames", args);
