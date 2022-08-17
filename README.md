@@ -1,4 +1,5 @@
 # RIFE
+
 [![CI](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml/badge.svg)](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml)
 ![downloads](https://img.shields.io/github/downloads/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/total.svg)
 
@@ -21,10 +22,13 @@ Real-Time Intermediate Flow Estimation for Video Frame Interpolation, based on [
   - 7 = rife-v3.0
   - 8 = rife-v3.1
   - 9 = rife-v4
+  - 10 = rife-4.3 (ensemble=False / fast=True)
+
   # My custom models
-  - 10 = sudo_rife4_ensembleFalse_fastTrue
-  - 11 = sudo_rife4_ensembleTrue_fastFalse
-  - 12 = sudo_rife4_ensembleTrue_fastTrue 
+
+  - 11 = sudo_rife4_ensembleFalse_fastTrue
+  - 12 = sudo_rife4_ensembleTrue_fastFalse
+  - 13 = sudo_rife4_ensembleTrue_fastTrue
 
 - factor_num, factor_den: Factor of target frame rate. For example `factor_num=5, factor_den=2` will multiply input clip FPS by 2.5. Only rife-v4 model supports custom frame rate.
 
@@ -44,12 +48,12 @@ Real-Time Intermediate Flow Estimation for Video Frame Interpolation, based on [
 
 - skip: Skip interpolating static frames. Requires [VMAF](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-VMAF) plugin.
 
-- skip_threshold: PSNR threshold to determine whether the current frame and the next one are static. 
+- skip_threshold: PSNR threshold to determine whether the current frame and the next one are static.
 
 - list_gpu: Simply print a list of available GPU devices on the frame and does no interpolation.
 
-
 ## Compilation
+
 Requires `Vulkan SDK`.
 
 ```
