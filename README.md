@@ -11,23 +11,6 @@ Real-Time Intermediate Flow Estimation for Video Frame Interpolation, based on [
 
 - clip: Clip to process. Only RGB format with float sample type of 32 bit depth is supported.
 
-            case 14:
-                modelPath += "/rife-v4.5_ensembleFalse";
-                break;
-            case 15:
-                modelPath += "/rife-v4.5_ensembleTrue";
-                break;
-            case 16:
-                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
-                break;
-            case 17:
-                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
-                break;
-            case 18:
-                modelPath += "/sudo_rife4_ensembleTrue_fastTrue";
-                break;
-            }
-
 - model: Model to use.
   - 0 = rife
   - 1 = rife-HD
