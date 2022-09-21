@@ -104,6 +104,7 @@ jobs:
         upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: build/librife.so
         asset_name: librife.so
+        asset_content_type: application/octet-stream
 
   macOS:
       needs: [setup, create-release]
@@ -180,3 +181,4 @@ jobs:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: build/librife.dylib
           asset_name: librife.dylib
+          asset_content_type: application/octet-stream
