@@ -11,6 +11,23 @@ Real-Time Intermediate Flow Estimation for Video Frame Interpolation, based on [
 
 - clip: Clip to process. Only RGB format with float sample type of 32 bit depth is supported.
 
+            case 14:
+                modelPath += "/rife-v4.5_ensembleFalse";
+                break;
+            case 15:
+                modelPath += "/rife-v4.5_ensembleTrue";
+                break;
+            case 16:
+                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
+                break;
+            case 17:
+                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                break;
+            case 18:
+                modelPath += "/sudo_rife4_ensembleTrue_fastTrue";
+                break;
+            }
+
 - model: Model to use.
   - 0 = rife
   - 1 = rife-HD
@@ -26,12 +43,14 @@ Real-Time Intermediate Flow Estimation for Video Frame Interpolation, based on [
   - 11 = rife-v4.3 (ensemble=True / fast=False)
   - 12 = rife-v4.4 (ensemble=False / fast=True)
   - 13 = rife-v4.4 (ensemble=True / fast=False)
+  - 14 = rife-v4.5 (ensemble=False)
+  - 15 = rife-v4.5 (ensemble=True)
 
   ## My custom models
 
-  - 14 = sudo_rife4 (ensemble=False / fast=True)
-  - 15 = sudo_rife4 (ensemble=True / fast=False)
-  - 16 = sudo_rife4 (ensemble=True / fast=True)
+  - 16 = sudo_rife4 (ensemble=False / fast=True)
+  - 17 = sudo_rife4 (ensemble=True / fast=False)
+  - 18 = sudo_rife4 (ensemble=True / fast=True)
 
 - factor_num, factor_den: Factor of target frame rate. For example `factor_num=5, factor_den=2` will multiply input clip FPS by 2.5. Only rife-v4 model supports custom frame rate.
 
