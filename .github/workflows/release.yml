@@ -96,21 +96,14 @@ jobs:
       run: |
         meson build -Duse_system_ncnn=true
         ninja -C build
-    - name: Package
-      run: |
-        mkdir -p ${{ env.PACKAGENAME }}
-        cp README.md LICENSE ${{ env.PACKAGENAME }}
-        cp -r build/librife.so ${{ env.PACKAGENAME }}
-        zip -9 -r ${{ env.PACKAGENAME }}_${{ matrix.python-version }}.zip ${{ env.PACKAGENAME }}
     - name: Upload
       uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ needs.create-release.outputs.upload_url }}
-        asset_path: ${{ env.PACKAGENAME }}_${{ matrix.python-version }}.zip
-        asset_name: ${{ env.PACKAGENAME }}_${{ matrix.python-version }}.zip
-        asset_content_type: application/zip
+        asset_path: build/librife.so
+        asset_name: librife.so
 
   macOS:
       needs: [setup, create-release]
@@ -179,18 +172,11 @@ jobs:
         run: |
           meson build -Dcpp_args=-I$VULKAN_SDK/include -Dcpp_link_args=-L/usr/local/lib -Duse_system_ncnn=true
           ninja -C build
-      - name: Package
-        run: |
-          mkdir -p final
-          cp README.md LICENSE final
-          cp -r build/* final
-          zip -9 -r mac_${{ matrix.python-version }}.zip final
       - name: Upload
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: mac_${{ matrix.python-version }}.zip
-          asset_name: mac_${{ matrix.python-version }}.zip
-          asset_content_type: application/zip
+          asset_path: build/librife.dylib
+          asset_name: librife.dylib
