@@ -69,7 +69,7 @@ else
   opt_var.add_cmake_defines({'WITH_LAYER_input': true})
   opt_var.add_cmake_defines({'WITH_LAYER_log': false})
   opt_var.add_cmake_defines({'WITH_LAYER_lrn': false})
-  opt_var.add_cmake_defines({'WITH_LAYER_memorydata': false})
+  opt_var.add_cmake_defines({'WITH_LAYER_memorydata': true})
   opt_var.add_cmake_defines({'WITH_LAYER_mvn': false})
   opt_var.add_cmake_defines({'WITH_LAYER_pooling': true})
   opt_var.add_cmake_defines({'WITH_LAYER_power': false})
