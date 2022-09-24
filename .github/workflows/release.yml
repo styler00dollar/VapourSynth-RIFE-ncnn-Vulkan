@@ -225,6 +225,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
-          asset_path: build/librife.dll
+          asset_path: build/rife.dll
           asset_name: librife.dll
           asset_content_type: application/octet-stream
