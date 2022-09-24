@@ -94,7 +94,8 @@ jobs:
         rm -rf ncnn
     - name: Build
       run: |
-        meson build
+        git submodule update --init --recursive --depth 1
+        meson build -Dbuildtype=debug -Db_lto=false
         ninja -C build
     - name: Upload
       uses: actions/upload-release-asset@v1
@@ -171,7 +172,8 @@ jobs:
 
       - name: Build
         run: |
-          meson build -Dcpp_args=-I$VULKAN_SDK/include -Dcpp_link_args=-L/usr/local/lib
+          git submodule update --init --recursive --depth 1
+          meson build -Dbuildtype=debug -Db_lto=false -Dcpp_args=-I$VULKAN_SDK/include -Dcpp_link_args=-L/usr/local/lib
           ninja -C build
       - name: Upload
         uses: actions/upload-release-asset@v1
