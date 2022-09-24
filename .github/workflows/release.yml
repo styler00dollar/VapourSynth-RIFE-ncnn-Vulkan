@@ -220,8 +220,8 @@ jobs:
           
           wget https://codeload.github.com/vapoursynth/vapoursynth/zip/refs/tags/R60 -O vapoursynth-R60.zip
           7z x vapoursynth-R60.zip
-          mkdir libs/
-          mv vapoursynth-*/ libs/vapoursynth/
+          mkdir lib/
+          mv vapoursynth-*/ lib/vapoursynth/
       - name: Build
         run: |
           $env:VULKAN_SDK="$(pwd)\VulkanSDK"
