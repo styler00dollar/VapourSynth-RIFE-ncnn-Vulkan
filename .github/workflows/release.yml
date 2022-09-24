@@ -94,7 +94,7 @@ jobs:
         rm -rf ncnn
     - name: Build
       run: |
-        meson build -Duse_system_ncnn=true
+        meson build
         ninja -C build
     - name: Upload
       uses: actions/upload-release-asset@v1
@@ -171,7 +171,7 @@ jobs:
 
       - name: Build
         run: |
-          meson build -Dcpp_args=-I$VULKAN_SDK/include -Dcpp_link_args=-L/usr/local/lib -Duse_system_ncnn=true
+          meson build -Dcpp_args=-I$VULKAN_SDK/include -Dcpp_link_args=-L/usr/local/lib
           ninja -C build
       - name: Upload
         uses: actions/upload-release-asset@v1
