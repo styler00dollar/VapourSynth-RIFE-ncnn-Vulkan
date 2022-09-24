@@ -184,3 +184,47 @@ jobs:
           asset_path: build/librife.dylib
           asset_name: librife.dylib
           asset_content_type: application/octet-stream
+          
+  windows:
+    needs: [setup, create-release]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: cache-vulkansdk
+        id: cache-vulkansdk
+        uses: actions/cache@v1
+        with:
+          path: "VulkanSDK"
+          key: VulkanSDK-1.2.162.0-Installer
+      - name: vulkansdk
+        if: steps.cache-vulkansdk.outputs.cache-hit != 'true'
+        run: |
+          Invoke-WebRequest -Uri https://sdk.lunarg.com/sdk/download/1.2.162.0/windows/VulkanSDK-1.2.162.0-Installer.exe?Human=true -OutFile VulkanSDK-1.2.162.0-Installer.exe
+          7z x -aoa ./VulkanSDK-1.2.162.0-Installer.exe -oVulkanSDK
+          Remove-Item .\VulkanSDK\Demos, .\VulkanSDK\Samples, .\VulkanSDK\Third-Party, .\VulkanSDK\Tools, .\VulkanSDK\Tools32, .\VulkanSDK\Bin32, .\VulkanSDK\Lib32 -Recurse
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+      - name: Install python packages
+        run: |
+          python -m pip install --upgrade pip
+          pip install meson ninja
+      - name: Build
+        run: |
+          $env:VULKAN_SDK="$(pwd)\VulkanSDK"
+          git submodule update --init --recursive --depth 1
+          meson build -Dbuildtype=debug -Db_lto=false
+          ninja -C build
+      - name: Upload
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: build/librife.dll
+          asset_name: librife.dll
+          asset_content_type: application/octet-stream
