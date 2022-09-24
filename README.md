@@ -26,18 +26,20 @@ By default models are exported with ensemble=False and Fast=True
   - 9 = rife-v4 (ensemble=False / fast=True)
   - 10 = rife-v4 (ensemble=True / fast=False)
   - 11 = [rife-v4.1](https://github.com/mirrorsysu/rife-ncnn-vulkan/tree/model_4_1) (ensemble=False / fast=True)
-  - 12 = rife-v4.3 (ensemble=False / fast=True)
-  - 13 = rife-v4.3 (ensemble=True / fast=False)
-  - 14 = rife-v4.4 (ensemble=False / fast=True)
-  - 15 = rife-v4.4 (ensemble=True / fast=False)
-  - 16 = rife-v4.5 (ensemble=False)
-  - 17 = rife-v4.5 (ensemble=True)
+  - 12 = rife-v4.2 (ensemble=False / fast=True)
+  - 13 = rife-v4.2 (ensemble=True / fast=False)
+  - 14 = rife-v4.3 (ensemble=False / fast=True)
+  - 15 = rife-v4.3 (ensemble=True / fast=False)
+  - 16 = rife-v4.4 (ensemble=False / fast=True)
+  - 17 = rife-v4.4 (ensemble=True / fast=False)
+  - 18 = rife-v4.5 (ensemble=False)
+  - 19 = rife-v4.5 (ensemble=True)
 
   ## My custom models
 
-  - 18 = sudo_rife4 (ensemble=False / fast=True)
-  - 19 = sudo_rife4 (ensemble=True / fast=False)
-  - 20 = sudo_rife4 (ensemble=True / fast=True)
+  - 20 = sudo_rife4 (ensemble=False / fast=True)
+  - 21 = sudo_rife4 (ensemble=True / fast=False)
+  - 22 = sudo_rife4 (ensemble=True / fast=True)
 
 - factor_num, factor_den: Factor of target frame rate. For example `factor_num=5, factor_den=2` will multiply input clip FPS by 2.5. Only rife-v4 model supports custom frame rate.
 
