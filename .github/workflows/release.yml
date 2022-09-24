@@ -217,6 +217,11 @@ jobs:
         run: |
           curl -s -o vs.7z -LJO https://github.com/vapoursynth/vapoursynth/releases/download/R60/VapourSynth64-Portable-R60.7z
           7z x vs.7z -ovs_portable -y
+          
+          wget https://codeload.github.com/vapoursynth/vapoursynth/zip/refs/tags/R60 -O vapoursynth-R60.zip
+          7z x vapoursynth-R60.zip
+          mkdir libs/
+          mv vapoursynth-*/ libs/vapoursynth/
       - name: Build
         run: |
           $env:VULKAN_SDK="$(pwd)\VulkanSDK"
