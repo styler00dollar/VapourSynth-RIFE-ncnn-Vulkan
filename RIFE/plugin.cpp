@@ -29,8 +29,8 @@
 #include <string>
 #include <vector>
 
-#include <VapourSynth4.h>
-#include <VSHelper4.h>
+#include "VapourSynth4.h"
+#include "VSHelper4.h"
 
 #include "rife.h"
 
