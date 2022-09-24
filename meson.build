@@ -28,6 +28,8 @@ else
   install_dir = get_option('libdir') / 'vapoursynth'
 endif
 
+message(install_dir)
+
 if get_option('use_system_ncnn')
   deps += dependency('ncnn', method: 'cmake')
 else
