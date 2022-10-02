@@ -138,6 +138,11 @@ jobs:
       - name: Install zimg
         run: brew install zimg
 
+      - name: reinstalling xcode
+        run: |
+          sudo rm -rf /Library/Developer/CommandLineTools
+          xcode-select --install
+
       - name: Install VapourSynth
         run: |
           git clone https://github.com/vapoursynth/vapoursynth --depth 1
