@@ -203,8 +203,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (err)
             d->skipThreshold = 60.0;
 
-        if (model < 0 || model > 23)
-            throw "model must be between 0 and 23 (inclusive)";
+        if (model < 0 || model > 25)
+            throw "model must be between 0 and 25 (inclusive)";
 
         if (factorNum < 1)
             throw "factor_num must be at least 1";
