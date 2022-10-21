@@ -68,11 +68,12 @@ By default models are exported with ensemble=False and Fast=True
 
 ## Compilation
 
-Requires `Vulkan SDK`.
-
-```
-git submodule update --init --recursive --depth 1
-meson build
-ninja -C build
-ninja -C build install
+```bash
+brew install meson ninja llvm libomp pkg-config molten-vk vulkan-headers ncnn
+PKG_CONFIG_PATH="$PWD/pkgconfig/" \
+	CC=/opt/homebrew/opt/llvm/bin/clang \
+	CXX=/opt/homebrew/opt/llvm/bin/clang++ \
+	meson build
+cd build
+ninja
 ```

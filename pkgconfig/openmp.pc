@@ -1,0 +1,9 @@
+prefix=/opt/homebrew/Cellar/libomp/15.0.3
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libomp
+Description: LLVM's OpenMP runtime library
+Version: 15.0.3
+Libs: -L${libdir}
+Cflags: -I${includedir}

@@ -1,5 +1,5 @@
 option('use_system_ncnn',
   type: 'boolean',
-  value: false,
+  value: true,
   description: 'build with system libncnn'
 )

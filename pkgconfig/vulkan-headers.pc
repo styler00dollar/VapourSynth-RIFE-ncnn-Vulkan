@@ -1,0 +1,7 @@
+prefix=/opt/homebrew/Cellar/vulkan-headers/1.3.231
+includedir=${prefix}/include
+
+Name: vulkan-headers
+Description: Headers for Vulkan
+Version: 1.3.231
+Cflags: -I${includedir}

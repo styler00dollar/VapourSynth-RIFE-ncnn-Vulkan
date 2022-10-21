@@ -16,7 +16,8 @@ endif
 deps = [
   dependency('openmp'),
   dependency('threads'),
-  dependency('vulkan')
+  dependency('vulkan'),
+  dependency('vulkan-headers')
 ]
 
 if gcc_syntax
@@ -31,7 +32,7 @@ endif
 message(install_dir)
 
 if get_option('use_system_ncnn')
-  deps += dependency('ncnn', method: 'cmake')
+  deps += dependency('ncnn')
 else
   cmake = import('cmake')
 

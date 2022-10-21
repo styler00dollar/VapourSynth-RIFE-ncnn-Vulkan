@@ -1,0 +1,9 @@
+prefix=/opt/homebrew/Cellar/molten-vk/1.2.0
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: libMoltenVK
+Description: Vulkan Portability implementation
+Version: 1.2.0
+Libs: -L${libdir}
+Cflags: -I${includedir}

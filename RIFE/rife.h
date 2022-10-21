@@ -6,7 +6,7 @@
 #include <string>
 
 // ncnn
-#include "net.h"
+#include "ncnn/net.h"
 
 class RIFE
 {
