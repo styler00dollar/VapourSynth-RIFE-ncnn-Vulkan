@@ -126,7 +126,7 @@ else
   opt_var.add_cmake_defines({'WITH_LAYER_mish': false})
   opt_var.add_cmake_defines({'WITH_LAYER_statisticspooling': false})
   opt_var.add_cmake_defines({'WITH_LAYER_swish': false})
-  opt_var.add_cmake_defines({'WITH_LAYER_gemm': false})
+  opt_var.add_cmake_defines({'WITH_LAYER_gemm': true})
   opt_var.add_cmake_defines({'WITH_LAYER_groupnorm': false})
   opt_var.add_cmake_defines({'WITH_LAYER_layernorm': false})
   opt_var.add_cmake_defines({'WITH_LAYER_softplus': false})
