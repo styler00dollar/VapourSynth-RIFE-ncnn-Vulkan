@@ -50,8 +50,6 @@ By default models are exported with ensemble=False and Fast=True
   - 33 = rife-v4.12 (ensemble=False)
   - 34 = rife-v4.12 (ensemble=True)
 
-* 4.7+ ensemble models visually look usable but official code might be incorrect, see https://github.com/hzwer/Practical-RIFE/issues/41#issuecomment-1811633467. Models may subject to change.
-
   ## My experimental custom models (only works with 2x)
 
   - 35 = sudo_rife4 (ensemble=False / fast=True)
