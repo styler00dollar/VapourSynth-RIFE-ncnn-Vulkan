@@ -51,12 +51,13 @@ By default models are exported with ensemble=False and Fast=True
   - 34 = rife-v4.12 (ensemble=True)
   - 35 = rife-v4.12-light (ensemble=False)
   - 36 = rife-v4.12-light (ensemble=True)
+  - 37 = rife-v4.13 (ensemble=False)
 
   ## My experimental custom models (only works with 2x)
 
-  - 37 = sudo_rife4 (ensemble=False / fast=True)
-  - 38 = sudo_rife4 (ensemble=True / fast=False)
-  - 39 = sudo_rife4 (ensemble=True / fast=True)
+  - 38 = sudo_rife4 (ensemble=False / fast=True)
+  - 39 = sudo_rife4 (ensemble=True / fast=False)
+  - 40 = sudo_rife4 (ensemble=True / fast=True)
 
 - factor_num, factor_den: Factor of target frame rate. For example `factor_num=5, factor_den=2` will multiply input clip FPS by 2.5. Only rife-v4 model supports custom frame rate.
 
