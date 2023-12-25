@@ -13,10 +13,19 @@ if get_option('buildtype') == 'release'
   add_global_arguments(gcc_syntax ? ['-fno-math-errno', '-fno-trapping-math'] : '/GS-', language: 'cpp')
 endif
 
+omp_dep = 0
+if meson.get_compiler('cpp').get_id() == 'clang'
+  omp_dep = declare_dependency(
+  compile_args : ['-Xpreprocessor', '-fopenmp']
+  )
+else
+  omp_dep = dependency('openmp')
+endif
+
 deps = [
-  dependency('openmp'),
+  omp_dep,
   dependency('threads'),
-  dependency('vulkan')
+  dependency('vulkan', required: false)
 ]
 
 if gcc_syntax

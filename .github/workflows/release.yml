@@ -122,7 +122,8 @@ jobs:
       - name: Install automake
         run: |
           brew update
-          brew install automake
+          brew install automake ninja llvm libomp pkg-config molten-vk vulkan-headers ncnn
+  
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
@@ -131,55 +132,28 @@ jobs:
       - name: Install meson
         run: |
           python -m pip install --upgrade pip
-          pip install meson
-      - name: Install ninja
-        run: brew install ninja
+          pip install meson -U
 
       - name: Install zimg
-        run: brew install zimg
-
-      - name: reinstalling xcode
-        run: |
-          sudo rm -rf /Library/Developer/CommandLineTools
-          xcode-select --install
+        run: git clone https://github.com/sekrit-twc/zimg --depth 1 --recurse-submodules --shallow-submodules && cd zimg && CC=clang CXX=clang++ ./autogen.sh && CC=clang CXX=clang++ CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && CC=clang CXX=clang++ make -j$(nproc) && sudo make install
 
       - name: Install VapourSynth
         run: |
           git clone https://github.com/vapoursynth/vapoursynth --depth 1
           pushd vapoursynth
-          ./autogen.sh
-          ./configure --disable-static --disable-x86-asm --disable-vsscript --disable-vspipe --disable-python-module
-          make -j3
+          CC=clang CXX=clang++ ./autogen.sh
+          CC=clang CXX=clang++ ./configure --disable-static --disable-x86-asm --disable-vsscript --disable-vspipe --disable-python-module
+          CC=clang CXX=clang++ make -j3
           sudo make install -j3
           popd
           rm -rf vapoursynth
-      - name: Cache Vulkan SDK
-        id: cache-vulkansdk
-        uses: actions/cache@v3
-        with:
-          path: vulkansdk-macos-1.2.170.0
-          key: vulkansdk-macos-1.2.170.0
-
-      - name: Install Vulkan SDK
-        if: steps.cache-vulkansdk.outputs.cache-hit != 'true'
-        run: |
-          wget https://sdk.lunarg.com/sdk/download/1.2.170.0/mac/vulkansdk-macos-1.2.170.0.dmg
-          hdiutil attach vulkansdk-macos-1.2.170.0.dmg
-          cp -r /Volumes/vulkansdk-macos-1.2.170.0 .
-          rm -rf vulkansdk-macos-1.2.170.0/Applications
-          find vulkansdk-macos-1.2.170.0 -type f | grep -v -E 'vulkan|glslang|MoltenVK' | xargs rm
-          hdiutil detach /Volumes/vulkansdk-macos-1.2.170.0
-      - name: Set VULKAN_SDK
-        run: echo "VULKAN_SDK=$GITHUB_WORKSPACE/vulkansdk-macos-1.2.170.0/macOS" >> $GITHUB_ENV
-
-      - name: Install ncnn
-        run: brew install ncnn
 
       - name: Build
         run: |
           git submodule update --init --recursive --depth 1
-          meson build -Dcpp_args=-I$VULKAN_SDK/include -Dcpp_link_args=-L/usr/local/lib
-          ninja -C build
+          PKG_CONFIG_PATH="$PWD/pkgconfig/" CC=clang CXX=clang++ meson build
+          CC=clang CXX=clang++ ninja -C build
+          
       - name: Upload
         uses: actions/upload-release-asset@v1
         env:
