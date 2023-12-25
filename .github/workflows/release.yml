@@ -65,8 +65,8 @@ jobs:
       run: sudo apt-get install ninja-build
 
     - name: Install zimg
-      run: sudo apt-get install libzimg-dev
-
+      run: git clone https://github.com/sekrit-twc/zimg --depth 1 --recurse-submodules --shallow-submodules && cd zimg && ./autogen.sh && CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && make -j$(nproc) && sudo make install
+        
     - name: Install VapourSynth
       run: |
         git clone https://github.com/vapoursynth/vapoursynth --depth 1
