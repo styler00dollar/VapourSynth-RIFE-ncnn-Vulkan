@@ -103,7 +103,7 @@ else
   opt_var.add_cmake_defines({'WITH_LAYER_lstm': false})
   opt_var.add_cmake_defines({'WITH_LAYER_binaryop': true})
   opt_var.add_cmake_defines({'WITH_LAYER_unaryop': true})
-  opt_var.add_cmake_defines({'WITH_LAYER_convolutiondepthwise': false})
+  opt_var.add_cmake_defines({'WITH_LAYER_convolutiondepthwise': true})
   opt_var.add_cmake_defines({'WITH_LAYER_padding': true})
   opt_var.add_cmake_defines({'WITH_LAYER_squeeze': false})
   opt_var.add_cmake_defines({'WITH_LAYER_expanddims': false})
