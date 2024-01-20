@@ -176,9 +176,10 @@ jobs:
       - name: Setup Vulkan SDK
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri https://sdk.lunarg.com/sdk/download/1.2.189.0/windows/VulkanSDK-1.2.189.0-Installer.exe?Human=true -OutFile VulkanSDK.exe
-          $installer = Start-Process -FilePath VulkanSDK.exe -Wait -PassThru -ArgumentList @("/S");
-          $installer.WaitForExit();
+          $url = 'https://sdk.lunarg.com/sdk/download/1.3.275.0/windows/VulkanSDK-1.3.275.0-Installer.exe'
+          $installerFile = 'VulkanSDK-1.3.275.0-Installer.exe'
+          Invoke-WebRequest -Uri $url -OutFile $installerFile
+          Start-Process -FilePath $installerFile -ArgumentList '--accept-licenses', '--default-answer', '--confirm-command', 'install' -Wait
       - name: Setup Python
         uses: actions/setup-python@v3
         with:
@@ -197,7 +198,7 @@ jobs:
           meson build
           ninja -C build
         env:
-          VULKAN_SDK: C:\VulkanSDK\1.2.189.0
+          VULKAN_SDK: C:\VulkanSDK\1.3.275.0
       - name: Upload
         uses: actions/upload-release-asset@v1
         env:
