@@ -11,6 +11,8 @@ Real-Time Intermediate Flow Estimation for Video Frame Interpolation, based on [
 
 - clip: Clip to process. Only RGB format with float sample type of 32 bit depth is supported.
 
+The `models` folder needs to be in the same folder as the compiled binary.
+
 By default models are exported with ensemble=False and Fast=True
 
 - model: Model to use.
