@@ -203,8 +203,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (err)
             d->skipThreshold = 60.0;
 
-        if (model < 0 || model > 45)
-            throw "model must be between 0 and 45 (inclusive)";
+        if (model < 0 || model > 49)
+            throw "model must be between 0 and 49 (inclusive)";
 
         if (factorNum < 1)
             throw "factor_num must be at least 1";
@@ -307,115 +307,128 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             case 8:
                 modelPath += "/rife-v3.1";
                 break;
+            
             case 9:
-                modelPath += "/rife-v4_ensembleFalse_fastTrue";
+                modelPath += "/rife-v3.9_ensembleFalse_fastTrue";
                 break;
             case 10:
-                modelPath += "/rife-v4_ensembleTrue_fastFalse";
+                modelPath += "/rife-v3.9_ensembleTrue_fastFalse";
                 break;
             case 11:
-                modelPath += "/rife-v4.1_ensembleFalse_fastTrue";
+                modelPath += "/rife-v4_ensembleFalse_fastTrue";
                 break;
             case 12:
-                modelPath += "/rife-v4.1_ensembleTrue_fastFalse";
+                modelPath += "/rife-v4_ensembleTrue_fastFalse";
                 break;
             case 13:
-                modelPath += "/rife-v4.2_ensembleFalse_fastTrue";
+                modelPath += "/rife-v4.1_ensembleFalse_fastTrue";
                 break;
             case 14:
-                modelPath += "/rife-v4.2_ensembleTrue_fastFalse";
+                modelPath += "/rife-v4.1_ensembleTrue_fastFalse";
                 break;
             case 15:
-                modelPath += "/rife-v4.3_ensembleFalse_fastTrue";
+                modelPath += "/rife-v4.2_ensembleFalse_fastTrue";
                 break;
             case 16:
-                modelPath += "/rife-v4.3_ensembleTrue_fastFalse";
+                modelPath += "/rife-v4.2_ensembleTrue_fastFalse";
                 break;
             case 17:
-                modelPath += "/rife-v4.4_ensembleFalse_fastTrue";
+                modelPath += "/rife-v4.3_ensembleFalse_fastTrue";
                 break;
             case 18:
-                modelPath += "/rife-v4.4_ensembleTrue_fastFalse";
+                modelPath += "/rife-v4.3_ensembleTrue_fastFalse";
                 break;
             case 19:
-                modelPath += "/rife-v4.5_ensembleFalse";
+                modelPath += "/rife-v4.4_ensembleFalse_fastTrue";
                 break;
             case 20:
-                modelPath += "/rife-v4.5_ensembleTrue";
+                modelPath += "/rife-v4.4_ensembleTrue_fastFalse";
                 break;
             case 21:
-                modelPath += "/rife-v4.6_ensembleFalse";
+                modelPath += "/rife-v4.5_ensembleFalse";
                 break;
             case 22:
-                modelPath += "/rife-v4.6_ensembleTrue";
+                modelPath += "/rife-v4.5_ensembleTrue";
                 break;
             case 23:
-                modelPath += "/rife-v4.7_ensembleFalse";
+                modelPath += "/rife-v4.6_ensembleFalse";
                 break;
             case 24:
-                modelPath += "/rife-v4.7_ensembleTrue";
+                modelPath += "/rife-v4.6_ensembleTrue";
                 break;
             case 25:
-                modelPath += "/rife-v4.8_ensembleFalse";
+                modelPath += "/rife-v4.7_ensembleFalse";
                 break;
             case 26:
-                modelPath += "/rife-v4.8_ensembleTrue";
+                modelPath += "/rife-v4.7_ensembleTrue";
                 break;
             case 27:
-                modelPath += "/rife-v4.9_ensembleFalse";
+                modelPath += "/rife-v4.8_ensembleFalse";
                 break;
             case 28:
-                modelPath += "/rife-v4.9_ensembleFalse";
+                modelPath += "/rife-v4.8_ensembleTrue";
                 break;
             case 29:
-                modelPath += "/rife-v4.10_ensembleFalse";
+                modelPath += "/rife-v4.9_ensembleFalse";
                 break;
             case 30:
-                modelPath += "/rife-v4.10_ensembleTrue";
+                modelPath += "/rife-v4.9_ensembleFalse";
                 break;
             case 31:
-                modelPath += "/rife-v4.11_ensembleFalse";
+                modelPath += "/rife-v4.10_ensembleFalse";
                 break;
             case 32:
-                modelPath += "/rife-v4.11_ensembleTrue";
+                modelPath += "/rife-v4.10_ensembleTrue";
                 break;
             case 33:
-                modelPath += "/rife-v4.12_ensembleFalse";
+                modelPath += "/rife-v4.11_ensembleFalse";
                 break;
             case 34:
-                modelPath += "/rife-v4.12_ensembleTrue";
+                modelPath += "/rife-v4.11_ensembleTrue";
                 break;
             case 35:
-                modelPath += "/rife-v4.12_lite_ensembleFalse";
+                modelPath += "/rife-v4.12_ensembleFalse";
                 break;
             case 36:
-                modelPath += "/rife-v4.12_lite_ensembleTrue";
+                modelPath += "/rife-v4.12_ensembleTrue";
                 break;
             case 37:
-                modelPath += "/rife-v4.13_ensembleFalse";
+                modelPath += "/rife-v4.12_lite_ensembleFalse";
                 break;
             case 38:
-                modelPath += "/rife-v4.13_ensembleTrue";
+                modelPath += "/rife-v4.12_lite_ensembleTrue";
                 break;
             case 39:
-                modelPath += "/rife-v4.13_lite_ensembleFalse";
+                modelPath += "/rife-v4.13_ensembleFalse";
                 break;
             case 40:
-                modelPath += "/rife-v4.13_lite_ensembleTrue";
+                modelPath += "/rife-v4.13_ensembleTrue";
                 break;
             case 41:
-                modelPath += "/rife-v4.14_ensembleFalse";
+                modelPath += "/rife-v4.13_lite_ensembleFalse";
                 break;
             case 42:
-                modelPath += "/rife-v4.14_ensembleTrue";
+                modelPath += "/rife-v4.13_lite_ensembleTrue";
                 break;
             case 43:
-                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
+                modelPath += "/rife-v4.14_ensembleFalse";
                 break;
             case 44:
-                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                modelPath += "/rife-v4.14_ensembleTrue";
                 break;
             case 45:
+                modelPath += "/rife-v4.14_lite_ensembleFalse";
+                break;
+            case 46:
+                modelPath += "/rife-v4.14_lite_ensembleTrue";
+                break;
+            case 47:
+                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
+                break;
+            case 48:
+                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                break;
+            case 49:
                 modelPath += "/sudo_rife4_ensembleTrue_fastTrue";
                 break;
             
@@ -432,6 +445,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
 
         if (modelPath.find("rife-v2") != std::string::npos)
             rife_v2 = true;
+        else if (modelPath.find("rife-v3.9") != std::string::npos)
+            rife_v4 = true;
+        
         else if (modelPath.find("rife-v3") != std::string::npos)
             rife_v2 = true;
         else if (modelPath.find("rife-v4") != std::string::npos)
