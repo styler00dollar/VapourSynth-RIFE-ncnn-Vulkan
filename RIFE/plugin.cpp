@@ -222,7 +222,7 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             std::cerr << "Warning: gpu_thread is recommended be between 1 and " << queueCount << " (inclusive)" << std::endl;
         
         if (auto queueCount{ ncnn::get_gpu_info(gpuId).compute_queue_count() }; gpuThread < 1)
-            throw "gpu_thread is must be greater than 0";
+            throw "gpu_thread must be greater than 0";
 
         
         if (d->skipThreshold < 0 || d->skipThreshold > 60)
