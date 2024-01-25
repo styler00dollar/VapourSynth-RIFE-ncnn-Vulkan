@@ -28,7 +28,7 @@
 #include <semaphore>
 #include <string>
 #include <vector>
-#include <iostream>
+
 #include "VapourSynth4.h"
 #include "VSHelper4.h"
 
@@ -218,13 +218,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (gpuId < 0 || gpuId >= ncnn::get_gpu_count())
             throw "invalid GPU device";
 
-        if (auto queueCount{ ncnn::get_gpu_info(gpuId).compute_queue_count() }; static_cast<uint32_t>(gpuThread) > queueCount)
-            std::cerr << "Warning: gpu_thread is recommended be between 1 and " << queueCount << " (inclusive)" << std::endl;
-        
-        if (auto queueCount{ ncnn::get_gpu_info(gpuId).compute_queue_count() }; gpuThread < 1)
-            throw "gpu_thread must be greater than 0";
+        if (auto queueCount{ ncnn::get_gpu_info(gpuId).compute_queue_count() }; gpuThread < 1 || static_cast<uint32_t>(gpuThread) > queueCount)
+            throw ("gpu_thread must be between 1 and " + std::to_string(queueCount) + " (inclusive)").c_str();
 
-        
         if (d->skipThreshold < 0 || d->skipThreshold > 60)
             throw "skip_threshold must be between 0.0 and 60.0 (inclusive)";
 
