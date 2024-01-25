@@ -37,7 +37,7 @@ jobs:
 
     - name: Install VapourSynth
       run: |
-        git clone https://github.com/vapoursynth/vapoursynth --depth 1
+        git clone https://github.com/vapoursynth/vapoursynth --depth 1 --branch R65
         pushd vapoursynth
         ./autogen.sh
         ./configure --disable-static --disable-x86-asm --disable-vsscript --disable-vspipe --disable-python-module
