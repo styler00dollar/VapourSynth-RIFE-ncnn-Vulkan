@@ -219,7 +219,7 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             throw "invalid GPU device";
 
         if (auto queueCount{ ncnn::get_gpu_info(gpuId).compute_queue_count() }; static_cast<uint32_t>(gpuThread) > queueCount)
-            std::cerr << "Warning: gpu_thread is recommended be between 1 and " << queueCount << " (inclusive)" << std::endl;
+            std::cerr << "Warning: gpu_thread is recommended to be between 1 and " << queueCount << " (inclusive)" << std::endl;
         
         if (auto queueCount{ ncnn::get_gpu_info(gpuId).compute_queue_count() }; gpuThread < 1)
             throw "gpu_thread must be greater than 0";
