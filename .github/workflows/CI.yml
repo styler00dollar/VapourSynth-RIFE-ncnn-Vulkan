@@ -98,7 +98,7 @@ jobs:
 
     - name: Install VapourSynth
       run: |
-        git clone https://github.com/vapoursynth/vapoursynth --depth 1
+        git clone https://github.com/vapoursynth/vapoursynth --depth 1 --branch R65
         pushd vapoursynth
         CC=clang CXX=clang++ ./autogen.sh
         CC=clang CXX=clang++ ./configure --disable-static --disable-x86-asm --disable-vsscript --disable-vspipe --disable-python-module
