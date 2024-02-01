@@ -104,12 +104,12 @@ jobs:
       with:
         upload_url: ${{ needs.create-release.outputs.upload_url }}
         asset_path: build/librife.so
-        asset_name: librife.so
+        asset_name: librife_linux_x64.so
         asset_content_type: application/octet-stream
 
-  macOS:
+  macOS64:
       needs: [setup, create-release]
-      runs-on: macos-latest
+      runs-on: macos-12
 
       env:
         CC: /usr/local/opt/llvm/bin/clang
@@ -161,9 +161,66 @@ jobs:
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: build/librife.dylib
-          asset_name: librife.dylib
+          asset_name: librife_macos_x64.dylib
           asset_content_type: application/octet-stream
+
+  macOSarm:
+      needs: [setup, create-release]
+      runs-on: macos-14
+
+      env:
+        CC: /usr/local/opt/llvm/bin/clang
+        CXX: /usr/local/opt/llvm/bin/clang++
+
+      steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install automake
+        run: |
+          brew update
+          brew install automake ninja llvm libomp pkg-config molten-vk vulkan-headers ncnn
+  
+      - name: Setup Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+
+      - name: Install meson
+        run: |
+          python -m pip install --upgrade pip
+          pip install meson -U
+
+      - name: Install zimg
+        run: git clone https://github.com/sekrit-twc/zimg --depth 1 --recurse-submodules --shallow-submodules && cd zimg && CC=clang CXX=clang++ ./autogen.sh && CC=clang CXX=clang++ CFLAGS=-fPIC CXXFLAGS=-fPIC ./configure --enable-static --disable-shared && CC=clang CXX=clang++ make -j$(nproc) && sudo make install
+
+      - name: Install VapourSynth
+        run: |
+          git clone https://github.com/vapoursynth/vapoursynth --depth 1 --branch R65
+          pushd vapoursynth
+          CC=clang CXX=clang++ ./autogen.sh
+          CC=clang CXX=clang++ ./configure --disable-static --disable-x86-asm --disable-vsscript --disable-vspipe --disable-python-module
+          CC=clang CXX=clang++ make -j3
+          sudo make install -j3
+          popd
+          rm -rf vapoursynth
+
+      - name: Build
+        run: |
+          git submodule update --init --recursive --depth 1
+          PKG_CONFIG_PATH="$PWD/pkgconfig/" CC=clang CXX=clang++ meson build
+          CC=clang CXX=clang++ ninja -C build
           
+      - name: Upload
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: build/librife.dylib
+          asset_name: librife_macos_arm.dylib
+          asset_content_type: application/octet-stream
+
   windows:
     needs: [setup, create-release]
     runs-on: windows-latest
@@ -206,5 +263,5 @@ jobs:
         with:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           asset_path: build/rife.dll
-          asset_name: librife.dll
+          asset_name: librife_windows_x64.dll
           asset_content_type: application/octet-stream
