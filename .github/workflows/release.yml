@@ -179,7 +179,7 @@ jobs:
       - name: Install automake
         run: |
           brew update
-          brew install automake ninja llvm libomp pkg-config molten-vk vulkan-headers ncnn
+          brew install automake ninja llvm libomp pkg-config molten-vk vulkan-headers ncnn libtool
   
       - name: Setup Python
         uses: actions/setup-python@v3
