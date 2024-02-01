@@ -157,7 +157,12 @@ else
   opt_var.add_cmake_defines({'WITH_LAYER_deformableconv2d': false})
 
   if host_machine.system() == 'darwin'
-    opt_var.add_cmake_defines({'CMAKE_OSX_ARCHITECTURES': 'x86_64'})
+    if host_machine.cpu_family().startswith('x86')
+      opt_var.add_cmake_defines({'CMAKE_OSX_ARCHITECTURES': 'x86_64'})
+    endif
+    if host_machine.cpu_family().startswith('arm')
+      opt_var.add_cmake_defines({'CMAKE_OSX_ARCHITECTURES': 'arm64'})
+    endif
   endif
 
   if gcc_syntax
