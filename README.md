@@ -1,7 +1,11 @@
 # RIFE
 
-[![CI](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml/badge.svg)](https://github.com/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/actions/workflows/CI.yml)
-![downloads](https://img.shields.io/github/downloads/HomeOfVapourSynthEvolution/VapourSynth-RIFE-ncnn-Vulkan/total.svg)
+<p align="center">
+    <a href="https://visitorbadge.io/status?path=https%3A%2F%2Fgithub.com%2Fstyler00dollar%2FVapourSynth-RIFE-ncnn-Vulkan%2F"><img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Fstyler00dollar%2FVapourSynth-RIFE-ncnn-Vulkan%2F&labelColor=%23697689&countColor=%23ff8a65&style=plastic&labelStyle=none" /></a> 
+    <a href="https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan/releases"><img alt="GitHub release" src="https://img.shields.io/github/release/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan.svg?style=flat-square" /></a>
+    <a href="https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan/releases"><img alt="GitHub All Releases" src="https://img.shields.io/github/downloads/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan/total.svg?style=flat-square&color=%2364ff82" /></a>
+    <a href="https://github.com/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan/commits"><img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/styler00dollar/VapourSynth-RIFE-ncnn-Vulkan.svg?style=flat-square" /></a>
+</p>
 
 Real-Time Intermediate Flow Estimation for Video Frame Interpolation, based on [rife-ncnn-vulkan](https://github.com/nihui/rife-ncnn-vulkan).
 
