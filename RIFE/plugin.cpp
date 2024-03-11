@@ -427,12 +427,18 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
                 modelPath += "/rife-v4.14_lite_ensembleTrue";
                 break;
             case 47:
-                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
+                modelPath += "/rife-v4.15_ensembleFalse";
                 break;
             case 48:
-                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                modelPath += "/rife-v4.15_ensembleTrue";
                 break;
             case 49:
+                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
+                break;
+            case 50:
+                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                break;
+            case 51:
                 modelPath += "/sudo_rife4_ensembleTrue_fastTrue";
                 break;
             
