@@ -78,13 +78,13 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    - name: Install automake
+    - name: Install automake # remove 'brew update' due to it erroring out when installing libomp, may be fixed later.
       run: |
         export LDFLAGS="-L/usr/local/opt/libomp/lib"
         export CPPFLAGS="-I/usr/local/opt/libomp/include"
 
-        rm '/usr/local/bin/2to3'
-        brew update
+        
+       
         brew install libomp 
         brew install llvm
         brew install automake ninja pkg-config molten-vk vulkan-headers ncnn
