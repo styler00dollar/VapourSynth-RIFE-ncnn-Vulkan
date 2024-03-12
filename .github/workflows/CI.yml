@@ -80,6 +80,9 @@ jobs:
 
     - name: Install automake
       run: |
+        export LDFLAGS="-L/usr/local/opt/libomp/lib"
+        export CPPFLAGS="-I/usr/local/opt/libomp/include"
+
         brew update
         brew install automake ninja llvm libomp pkg-config molten-vk vulkan-headers ncnn
  
