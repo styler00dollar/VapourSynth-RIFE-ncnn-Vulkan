@@ -79,8 +79,8 @@ By default models are exported with ensemble=False and Fast=True
   - 56 = rife-v4.17-lite (ensemble=True)
   - 57 = rife-v4.18 (ensemble=False)
   - 58 = rife-v4.18 (ensemble=True)
-  - 59 = rife-v4.19 (ensemble=False)
-  - 60 = rife-v4.19 (ensemble=True)
+  - 59 = rife-v4.19-beta (ensemble=False)
+  - 60 = rife-v4.19-beta (ensemble=True)
   ## My experimental custom models (only works with 2x)
 
   - 61 = sudo_rife4 (ensemble=False / fast=True)
