@@ -203,7 +203,7 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (err)
             d->skipThreshold = 60.0;
 
-        if (model < 0 || model > 66)
+        if (model < 0 || model > 67)
             throw "model must be between 0 and 65 (inclusive)";
 
         if (factorNum < 1)
@@ -478,12 +478,15 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
                 modelPath += "/rife-v4.21_ensembleFalse";
                 break;
             case 64:
-                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
+                modelPath += "/rife-v4.22_ensembleFalse";
                 break;
             case 65:
-                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
                 break;
             case 66:
+                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                break;
+            case 67:
                 modelPath += "/sudo_rife4_ensembleTrue_fastTrue";
                 break;
             
