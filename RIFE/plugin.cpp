@@ -492,11 +492,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
                 break;
             case 68:
                 modelPath += "/rife-v4.25_ensembleFalse";
-                extra_padding = true;
                 break;
             case 69:
                 modelPath += "/rife-v4.26_ensembleFalse";
-                extra_padding = true;
                 break;
             case 70:
                 modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
@@ -530,6 +528,11 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             rife_v4 = true;
         else if (modelPath.find("rife4") != std::string::npos)
             rife_v4 = true;
+            // rife 4.25 and 4.26 require more padding due to extra scales.
+            if (modelPath.find("rifev4.25") != std::string::npos)
+                extra_padding = true;
+            if (modelPath.find("rifev4.26") != std::string::npos)
+                extra_padding = true;
         else if (modelPath.find("rife") == std::string::npos)
             throw "unknown model dir type";
 
