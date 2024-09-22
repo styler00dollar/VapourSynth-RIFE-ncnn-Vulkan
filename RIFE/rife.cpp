@@ -1180,8 +1180,8 @@ int RIFE::process_v4(const float* src0R, const float* src0G, const float* src0B,
     opt.staging_vkallocator = staging_vkallocator;
     int w_padded, h_padded;
     if (extra_padding) {
-        w_padded = (w + 127) / 128 * 128;
-        h_padded = (h + 127) / 128 * 128;
+        w_padded = (w + 63) / 64 * 64;
+        h_padded = (h + 63) / 64 * 64;
     } else {
         w_padded = (w + 31) / 32 * 32;
         h_padded = (h + 31) / 32 * 32;
