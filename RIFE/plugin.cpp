@@ -278,7 +278,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
                 ncnn::destroy_gpu_instance();
             return;
         }
-
+        bool extra_padding{};
+        extra_padding = false;
         if (modelPath.empty()) {
             std::string pluginPath{ vsapi->getPluginPath(vsapi->getPluginByID("com.holywu.rife", core)) };
             modelPath = pluginPath.substr(0, pluginPath.rfind('/')) + "/models";
@@ -491,6 +492,7 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
                 break;
             case 68:
                 modelPath += "/rife-v4.25_ensembleFalse";
+                extra_padding = true;
                 break;
             case 69:
                 modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
@@ -512,7 +514,7 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
 
         bool rife_v2{};
         bool rife_v4{};
-
+        
         if (modelPath.find("rife-v2") != std::string::npos)
             rife_v2 = true;
         else if (modelPath.find("rife-v3.9") != std::string::npos)
@@ -614,7 +616,7 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             vsapi->freeMap(ret);
         }
 
-        d->rife = std::make_unique<RIFE>(gpuId, tta, uhd, 1, rife_v2, rife_v4);
+        d->rife = std::make_unique<RIFE>(gpuId, tta, uhd, 1, rife_v2, rife_v4, extra_padding);
 
 #ifdef _WIN32
         auto bufferSize{ MultiByteToWideChar(CP_UTF8, 0, modelPath.c_str(), -1, nullptr, 0) };

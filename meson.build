@@ -60,6 +60,8 @@ else
   opt_var.add_cmake_defines({'NCNN_AVX512': false})
   opt_var.add_cmake_defines({'NCNN_AVX512VNNI': false})
   opt_var.add_cmake_defines({'NCNN_XOP': false})
+  opt_var.add_cmake_defines({'NCNN_DISABLE_RTTI': false})
+  opt_var.add_cmake_defines({'NCNN_DISABLE_EXCEPTION': false})
 
   opt_var.add_cmake_defines({'WITH_LAYER_absval': false})
   opt_var.add_cmake_defines({'WITH_LAYER_argmax': false})

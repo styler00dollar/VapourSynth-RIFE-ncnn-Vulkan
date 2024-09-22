@@ -21,7 +21,7 @@
 
 DEFINE_LAYER_CREATOR(Warp)
 
-RIFE::RIFE(int gpuid, bool _tta_mode, bool _uhd_mode, int _num_threads, bool _rife_v2, bool _rife_v4)
+RIFE::RIFE(int gpuid, bool _tta_mode, bool _uhd_mode, int _num_threads, bool _rife_v2, bool _rife_v4, bool _extra_padding)
 {
     vkdev = gpuid == -1 ? 0 : ncnn::get_gpu_device(gpuid);
 
@@ -41,6 +41,7 @@ RIFE::RIFE(int gpuid, bool _tta_mode, bool _uhd_mode, int _num_threads, bool _ri
     num_threads = _num_threads;
     rife_v2 = _rife_v2;
     rife_v4 = _rife_v4;
+    extra_padding = _extra_padding;
 }
 
 RIFE::~RIFE()
@@ -1177,10 +1178,14 @@ int RIFE::process_v4(const float* src0R, const float* src0G, const float* src0B,
     opt.blob_vkallocator = blob_vkallocator;
     opt.workspace_vkallocator = blob_vkallocator;
     opt.staging_vkallocator = staging_vkallocator;
-
-    // pad to 32n
-    int w_padded = (w + 31) / 32 * 32;
-    int h_padded = (h + 31) / 32 * 32;
+    int w_padded, h_padded;
+    if (extra_padding) {
+        w_padded = (w + 127) / 128 * 128;
+        h_padded = (h + 127) / 128 * 128;
+    } else {
+        w_padded = (w + 31) / 32 * 32;
+        h_padded = (h + 31) / 32 * 32;
+    }
 
     const size_t in_out_tile_elemsize = opt.use_fp16_storage ? 2u : 4u;
 
