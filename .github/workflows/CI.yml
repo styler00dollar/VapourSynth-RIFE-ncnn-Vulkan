@@ -68,7 +68,7 @@ jobs:
         ninja -C build
 
   macOS:
-    runs-on: macos-12
+    runs-on: macos-13
 
     env:
       CC: /usr/local/opt/llvm/bin/clang
