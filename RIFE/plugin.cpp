@@ -278,8 +278,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
                 ncnn::destroy_gpu_instance();
             return;
         }
-        bool extra_padding{};
-        extra_padding = false;
+        int padding;
+        padding = 32;
         if (modelPath.empty()) {
             std::string pluginPath{ vsapi->getPluginPath(vsapi->getPluginByID("com.holywu.rife", core)) };
             modelPath = pluginPath.substr(0, pluginPath.rfind('/')) + "/models";
@@ -530,9 +530,9 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             rife_v4 = true;
             // rife 4.25 and 4.26 require more padding due to extra scales.
             if (modelPath.find("rifev4.25") != std::string::npos)
-                extra_padding = true;
+                padding = 64;
             if (modelPath.find("rifev4.26") != std::string::npos)
-                extra_padding = true;
+                padding = 64;
         else if (modelPath.find("rife") == std::string::npos)
             throw "unknown model dir type";
 
@@ -623,7 +623,7 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             vsapi->freeMap(ret);
         }
 
-        d->rife = std::make_unique<RIFE>(gpuId, tta, uhd, 1, rife_v2, rife_v4, extra_padding);
+        d->rife = std::make_unique<RIFE>(gpuId, tta, uhd, 1, rife_v2, rife_v4, padding);
 
 #ifdef _WIN32
         auto bufferSize{ MultiByteToWideChar(CP_UTF8, 0, modelPath.c_str(), -1, nullptr, 0) };
