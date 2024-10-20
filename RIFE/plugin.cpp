@@ -534,11 +534,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             // rife 4.25 and 4.26 require more padding due to extra scales.
             if (modelPath.find("rifev4.25") != std::string::npos)
                 padding = 64;
-<<<<<<< HEAD
-=======
-            if (modelPath.find("rifev4.25-lite") != std::string::npos) // probably not necessary, but just in case
+            if (modelPath.find("rifev4.25-lite") != std::string::npos) 
                 padding = 128;
->>>>>>> 2473ff8 (add rife-v4.25-lite)
             if (modelPath.find("rifev4.26") != std::string::npos)
                 padding = 64;
         else if (modelPath.find("rife") == std::string::npos)
