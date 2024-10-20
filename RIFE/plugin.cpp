@@ -203,8 +203,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (err)
             d->skipThreshold = 60.0;
 
-        if (model < 0 || model > 72)
-            throw "model must be between 0 and 72 (inclusive)";
+        if (model < 0 || model > 73)
+            throw "model must be between 0 and 73 (inclusive)";
 
         if (factorNum < 1)
             throw "factor_num must be at least 1";
@@ -494,15 +494,18 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
                 modelPath += "/rife-v4.25_ensembleFalse";
                 break;
             case 69:
-                modelPath += "/rife-v4.26_ensembleFalse";
+                modelPath += "/rife-v4.25-lite_ensembleFalse";
                 break;
             case 70:
-                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
+                modelPath += "/rife-v4.26_ensembleFalse";
                 break;
             case 71:
-                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
                 break;
             case 72:
+                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                break;
+            case 73:
                 modelPath += "/sudo_rife4_ensembleTrue_fastTrue";
                 break;
             
@@ -531,6 +534,11 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             // rife 4.25 and 4.26 require more padding due to extra scales.
             if (modelPath.find("rifev4.25") != std::string::npos)
                 padding = 64;
+<<<<<<< HEAD
+=======
+            if (modelPath.find("rifev4.25-lite") != std::string::npos) // probably not necessary, but just in case
+                padding = 128;
+>>>>>>> 2473ff8 (add rife-v4.25-lite)
             if (modelPath.find("rifev4.26") != std::string::npos)
                 padding = 64;
         else if (modelPath.find("rife") == std::string::npos)
