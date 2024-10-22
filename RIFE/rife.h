@@ -51,7 +51,7 @@ private:
     int num_threads;
     bool rife_v2;
     bool rife_v4;
-    bool padding;
+    int padding;
 };
 
 #endif // RIFE_H
