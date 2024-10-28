@@ -68,7 +68,7 @@ jobs:
         ninja -C build
 
   macOS:
-    runs-on: macos-12
+    runs-on: macos-13
 
     env:
       CC: /usr/local/opt/llvm/bin/clang
@@ -86,7 +86,7 @@ jobs:
         
        
         brew install libomp 
-        brew install llvm
+        brew install llvm@15
         brew install automake ninja pkg-config molten-vk vulkan-headers ncnn
  
     - name: Setup Python
