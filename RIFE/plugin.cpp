@@ -203,8 +203,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (err)
             d->skipThreshold = 60.0;
 
-        if (model < 0 || model > 73)
-            throw "model must be between 0 and 73 (inclusive)";
+        if (model < 0 || model > 74)
+            throw "model must be between 0 and 74 (inclusive)";
 
         if (factorNum < 1)
             throw "factor_num must be at least 1";
@@ -497,15 +497,18 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
                 modelPath += "/rife-v4.25-lite_ensembleFalse";
                 break;
             case 70:
-                modelPath += "/rife-v4.26_ensembleFalse";
+                modelPath += "/rife-v4.25_heavy_beta_ensembleFalse";
                 break;
             case 71:
-                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
+                modelPath += "/rife-v4.26_ensembleFalse";
                 break;
             case 72:
-                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
                 break;
             case 73:
+                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                break;
+            case 74:
                 modelPath += "/sudo_rife4_ensembleTrue_fastTrue";
                 break;
             
@@ -531,13 +534,13 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
             rife_v4 = true;
         else if (modelPath.find("rife4") != std::string::npos)
             rife_v4 = true;
-            // rife 4.25 and 4.26 require more padding due to extra scales.
-            if (modelPath.find("rifev4.25") != std::string::npos)
-                padding = 64;
-            if (modelPath.find("rifev4.25-lite") != std::string::npos) 
-                padding = 128;
-            if (modelPath.find("rifev4.26") != std::string::npos)
-                padding = 64;
+        // rife 4.25 and 4.26 require more padding due to extra scales.
+        if (modelPath.find("rifev4.25") != std::string::npos)
+            padding = 64;
+        if (modelPath.find("rifev4.25-lite") != std::string::npos) 
+            padding = 128;
+        if (modelPath.find("rifev4.26") != std::string::npos)
+            padding = 64;
         else if (modelPath.find("rife") == std::string::npos)
             throw "unknown model dir type";
 
