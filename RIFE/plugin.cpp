@@ -203,8 +203,8 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
         if (err)
             d->skipThreshold = 60.0;
 
-        if (model < 0 || model > 74)
-            throw "model must be between 0 and 74 (inclusive)";
+        if (model < 0 || model > 75)
+            throw "model must be between 0 and 75 (inclusive)";
 
         if (factorNum < 1)
             throw "factor_num must be at least 1";
@@ -485,30 +485,33 @@ static void VS_CC rifeCreate(const VSMap* in, VSMap* out, [[maybe_unused]] void*
                 modelPath += "/rife-v4.22_lite_ensembleFalse";
                 break;
             case 66:
-                modelPath += "/rife-v4.24_ensembleFalse";
+                modelPath += "/rife-v4.23_beta_ensembleFalse";
                 break;
             case 67:
-                modelPath += "/rife-v4.24_ensembleTrue";
+                modelPath += "/rife-v4.24_ensembleFalse";
                 break;
             case 68:
-                modelPath += "/rife-v4.25_ensembleFalse";
+                modelPath += "/rife-v4.24_ensembleTrue";
                 break;
             case 69:
-                modelPath += "/rife-v4.25-lite_ensembleFalse";
+                modelPath += "/rife-v4.25_ensembleFalse";
                 break;
             case 70:
-                modelPath += "/rife-v4.25_heavy_beta_ensembleFalse";
+                modelPath += "/rife-v4.25-lite_ensembleFalse";
                 break;
             case 71:
-                modelPath += "/rife-v4.26_ensembleFalse";
+                modelPath += "/rife-v4.25_heavy_beta_ensembleFalse";
                 break;
             case 72:
-                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
+                modelPath += "/rife-v4.26_ensembleFalse";
                 break;
             case 73:
-                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                modelPath += "/sudo_rife4_ensembleFalse_fastTrue";
                 break;
             case 74:
+                modelPath += "/sudo_rife4_ensembleTrue_fastFalse";
+                break;
+            case 75:
                 modelPath += "/sudo_rife4_ensembleTrue_fastTrue";
                 break;
             
