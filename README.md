@@ -89,7 +89,6 @@ By default models are exported with ensemble=False and Fast=True
   - 66 = rife-v4.23-beta (ensemble=False)
   - 67 = rife-v4.24 (ensemble=False)
   - 68 = rife-v4.24 (ensemble=True)
-  -  <strong>NOTICE: Models 4.25 through 4.26-large have issues at some resolutions.</strong>
   - 69 = rife-v4.25 (ensemble=False) 
   - 70 = rife-v4.25-lite (ensemble=False)
   - 71 = rife-v4.25-heavy (ensemble=False)
