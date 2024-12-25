@@ -1,6 +1,7 @@
 // rife implemented with ncnn library
 
 #include "rife.h"
+//#include <iostream>
 
 #include <algorithm>
 #include <vector>
@@ -386,8 +387,8 @@ int RIFE::process(const float* src0R, const float* src0G, const float* src0B,
     opt.staging_vkallocator = staging_vkallocator;
 
     // pad to 32n
-    int w_padded = (w + 31) / 32 * 32;
-    int h_padded = (h + 31) / 32 * 32;
+    int w_padded = (w + padding - 1) / padding * padding;
+    int h_padded = (h + padding - 1) / padding * padding;
 
     const size_t in_out_tile_elemsize = opt.use_fp16_storage ? 2u : 4u;
 
@@ -1179,9 +1180,9 @@ int RIFE::process_v4(const float* src0R, const float* src0G, const float* src0B,
     opt.workspace_vkallocator = blob_vkallocator;
     opt.staging_vkallocator = staging_vkallocator;
     // padding, the default is 32, but newer rife models require 64
-    int w_padded, h_padded;
-    w_padded = (w + padding - 1) / padding * padding;
-    h_padded = (h + padding - 1) / padding * padding;
+    // std::cout << "padding: " << padding << std::endl;
+    int w_padded = (w + padding - 1) / padding * padding;
+    int h_padded = (h + padding - 1) / padding * padding;
     
 
     const size_t in_out_tile_elemsize = opt.use_fp16_storage ? 2u : 4u;
