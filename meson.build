@@ -179,7 +179,6 @@ else
   deps += sub_proj.dependency('glslang')
   deps += sub_proj.dependency('MachineIndependent')
   deps += sub_proj.dependency('ncnn')
-  deps += sub_proj.dependency('OGLCompiler')
   deps += sub_proj.dependency('OSDependent')
   deps += sub_proj.dependency('SPIRV')
 endif
