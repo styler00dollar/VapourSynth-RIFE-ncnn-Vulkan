@@ -119,14 +119,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install automake
+      - name: Install automake 
         run: |
           export LDFLAGS="-L/usr/local/opt/libomp/lib"
           export CPPFLAGS="-I/usr/local/opt/libomp/include"
-
-          brew install libomp 
-          brew install llvm
-          brew install automake ninja pkg-config molten-vk vulkan-headers ncnn
+          brew update
+          brew install llvm@15 libomp automake ninja pkg-config molten-vk vulkan-headers vulkan-tools ncnn 
   
       - name: Setup Python
         uses: actions/setup-python@v3
@@ -180,10 +178,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Install automake
+      - name: Install automake 
         run: |
+          export LDFLAGS="-L/usr/local/opt/libomp/lib"
+          export CPPFLAGS="-I/usr/local/opt/libomp/include"
           brew update
-          brew install automake ninja llvm libomp pkg-config molten-vk vulkan-headers ncnn libtool
+          brew install llvm@15 libomp automake ninja pkg-config molten-vk vulkan-headers vulkan-tools ncnn 
   
       - name: Setup Python
         uses: actions/setup-python@v3
