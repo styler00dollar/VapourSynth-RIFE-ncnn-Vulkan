@@ -183,7 +183,7 @@ jobs:
           export LDFLAGS="-L/usr/local/opt/libomp/lib"
           export CPPFLAGS="-I/usr/local/opt/libomp/include"
           brew update
-          brew install llvm@15 libomp automake ninja pkg-config molten-vk vulkan-headers vulkan-tools ncnn 
+          brew install llvm@15 libomp automake ninja pkg-config molten-vk vulkan-headers vulkan-tools ncnn libtool
   
       - name: Setup Python
         uses: actions/setup-python@v3
